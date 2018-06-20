@@ -256,3 +256,66 @@ func TestDerive(t *testing.T) {
 	}
 	t.Logf("Apply OK, got %q", got)
 }
+
+func TestRoundTrip(t *testing.T) {
+	// Each test verifies that a string matched against an original pattern
+	// with the given bindings, rendered by a derived pattern on those same
+	// bindings, and matched against the derived pattern again, yields a set of
+	// bindings that render to the original string.
+	tests := []struct {
+		original string
+		derived  string
+		input    string
+		binds    []Bind
+	}{
+		{"mary ${act}s jane", "${act} like an animal", "mary loves jane",
+			[]Bind{{"act", "\\w+"}}},
+
+		// Even if the derived string drops some of the occurrences, those that
+		// remain should follow the rules.
+		{"${1} + ${1} = ${1}", "is ${1} ${1}?", "1 + 3 = 3",
+			[]Bind{{"1", "\\d+"}}},
+	}
+	for _, test := range tests {
+		p, err := Parse(test.original, test.binds)
+		if err != nil {
+			t.Errorf("Parse %q failed: %v", test.original, err)
+			continue
+		}
+		q, err := p.Derive(test.derived)
+		if err != nil {
+			t.Errorf("Derive %q failed: %v", test.derived, err)
+			continue
+		}
+
+		t.Logf("Original string:  %q", test.input)
+		m1, err := p.Match(test.input)
+		if err != nil {
+			t.Errorf("Match 1 %q failed: %v", test.input, err)
+			continue
+		}
+		mid, err := q.Apply(m1)
+		if err != nil {
+			t.Errorf("Apply 1 %+v failed: %v", m1, err)
+			continue
+		}
+		t.Logf("Derived string:   %q", mid)
+
+		m2, err := q.Match(mid)
+		if err != nil {
+			t.Errorf("Match 2 %q failed: %v", mid, err)
+			continue
+		}
+
+		got, err := p.Apply(m2)
+		if err != nil {
+			t.Errorf("Apply 2 %+v failed: %v", m2, err)
+			continue
+		}
+		t.Logf("Reapplied string: %q", got)
+
+		if got != test.input {
+			t.Errorf("Round-trip failed: got %q, want %q", got, test.input)
+		}
+	}
+}
