@@ -76,7 +76,7 @@ func TestParseErrors(t *testing.T) {
 }
 
 func TestBinding(t *testing.T) {
-	p := MustParse("name: ${name}\nvalue: ${value}\n", []Bind{
+	p := MustParse("name: ${name}\nvalue: ${value}\n", Binds{
 		{"name", "xyz"},
 		{"value", "pdq"},
 	})
@@ -102,9 +102,9 @@ func TestBinding(t *testing.T) {
 func TestMatch(t *testing.T) {
 	tests := []struct {
 		pattern string
-		binds   []Bind
+		binds   Binds
 		needle  string
-		want    []Bind
+		want    Binds
 	}{
 		// A plain string should match itself.
 		{"alpha", nil, "alpha", nil},
@@ -114,24 +114,24 @@ func TestMatch(t *testing.T) {
 		{"$${ok", nil, "${ok", nil},
 
 		// A simple binding.
-		{"A#${num}", []Bind{{"num", "\\d+"}}, "A#5", []Bind{{"num", "5"}}},
+		{"A#${num}", Binds{{"num", "\\d+"}}, "A#5", []Bind{{"num", "5"}}},
 
 		// Repeated occurrences of the same pattern word.
-		{"[ ${x} | ${x} ]", []Bind{{"x", "\\d+"}}, "[ 1 | 2 ]", []Bind{
+		{"[ ${x} | ${x} ]", Binds{{"x", "\\d+"}}, "[ 1 | 2 ]", Binds{
 			{"x", "1"}, {"x", "2"},
 		}},
 
 		// Multiple distinct pattern words.
-		{"${a} ${y} ${b}", []Bind{
+		{"${a} ${y} ${b}", Binds{
 			{"a", "(?i)all"}, {"y", "(?i)your"}, {"b", "(?i)base"},
-		}, "ALL YOUR BASE", []Bind{
+		}, "ALL YOUR BASE", Binds{
 			{"a", "ALL"}, {"y", "YOUR"}, {"b", "BASE"},
 		}},
 
 		// Distinct pattern words with repetitions.
-		{"${a} and ${b} and ${a} again${c}", []Bind{
+		{"${a} and ${b} and ${a} again${c}", Binds{
 			{"a", "\\w+"}, {"b", "\\d+"}, {"c", "[.?]"},
-		}, "red and 25 and blue again?", []Bind{
+		}, "red and 25 and blue again?", Binds{
 			{"a", "red"}, {"b", "25"}, {"a", "blue"}, {"c", "?"},
 		}},
 	}
@@ -266,15 +266,15 @@ func TestRoundTrip(t *testing.T) {
 		original string
 		derived  string
 		input    string
-		binds    []Bind
+		binds    Binds
 	}{
 		{"mary ${act}s jane", "${act} like an animal", "mary loves jane",
-			[]Bind{{"act", "\\w+"}}},
+			Binds{{"act", "\\w+"}}},
 
 		// Even if the derived string drops some of the occurrences, those that
 		// remain should follow the rules.
 		{"${1} + ${1} = ${1}", "is ${1} ${1}?", "1 + 3 = 3",
-			[]Bind{{"1", "\\d+"}}},
+			Binds{{"1", "\\d+"}}},
 	}
 	for _, test := range tests {
 		p, err := Parse(test.original, test.binds)

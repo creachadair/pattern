@@ -84,7 +84,7 @@ func (p *P) Bind(name, expr string) bool {
 //
 // If matching fails, Match returns nil, ErrNoMatch.
 // If matching succeeds but no bindings are found, Match returns nil, nil.
-func (p *P) Match(needle string) ([]Bind, error) {
+func (p *P) Match(needle string) (Binds, error) {
 	re, err := p.compileRegexp()
 	if err != nil {
 		return nil, err
@@ -204,6 +204,31 @@ func stripNames(re *syntax.Regexp) {
 type Bind struct {
 	Name string
 	Expr string
+}
+
+// Binds is an ordered collection of bindings.
+type Binds []Bind
+
+// First returns the first bound value of key in bs, in order of occurrence.
+// It returns "" if key is not bound.
+func (bs Binds) First(key string) string {
+	for _, b := range bs {
+		if b.Name == key {
+			return b.Expr
+		}
+	}
+	return ""
+}
+
+// All returns all the bound values of key in bs, in order of occurrence.
+func (bs Binds) All(key string) []string {
+	var all []string
+	for _, b := range bs {
+		if b.Name == key {
+			all = append(all, b.Expr)
+		}
+	}
+	return all
 }
 
 // Parse parses s into a pattern template, and binds the specified pattern
