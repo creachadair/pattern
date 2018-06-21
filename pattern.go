@@ -141,7 +141,8 @@ func (p *P) Apply(binds []Bind) (string, error) {
 }
 
 // ApplyFunc acts as Apply, but before using the value of a binding b it first
-// calls f(i, b), where i is the number of times b has been previously used.
+// calls f(i, b), where i is the number of times b has been previously used in
+// the application being expanded.
 // The return value of f replaces the binding's original value.
 // ApplyFunc will panic if f == nil.
 func (p *P) ApplyFunc(binds []Bind, f func(int, Bind) string) (string, error) {
