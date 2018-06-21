@@ -137,21 +137,45 @@ var ErrNoMatch = errors.New("string does not match pattern")
 // If a pattern word appears in the template more often than in binds, the
 // value of the last matching binding is repeated to fill the remaining spots.
 func (p *P) Apply(binds []Bind) (string, error) {
-	sub := make(map[string][]string)
-	for _, bind := range binds {
-		sub[bind.Name] = append(sub[bind.Name], bind.Expr)
+	return p.ApplyFunc(binds, func(_ int, b Bind) string {
+		return b.Expr
+	})
+}
+
+// ApplyFunc acts as Apply, but before using the value of a binding b it first
+// calls f(i, b), where i is the number of times b has been previously used.
+// The return value of f replaces the binding's original value.
+// ApplyFunc will panic if f == nil.
+func (p *P) ApplyFunc(binds []Bind, f func(int, Bind) string) (string, error) {
+	type elt struct {
+		pos int      // how many times applied
+		val []string // values remaining
 	}
+	sub := make(map[string]*elt)
+	for _, bind := range binds {
+		e := sub[bind.Name]
+		if e == nil {
+			e = new(elt)
+			sub[bind.Name] = e
+		}
+		e.val = append(e.val, bind.Expr)
+	}
+
 	var out strings.Builder
 	for i, part := range p.parts {
 		if i%2 == 0 {
 			out.WriteString(part)
-		} else if s := sub[part]; len(s) == 0 {
+		} else if s := sub[part]; s == nil {
 			return "", fmt.Errorf("missing binding for %q", part)
 		} else {
-			out.WriteString(s[0])
-			if len(s) > 1 {
-				sub[part] = s[1:]
+			out.WriteString(f(s.pos, Bind{
+				Name: part,
+				Expr: s.val[0],
+			}))
+			if len(s.val) > 1 {
+				s.val = s.val[1:]
 			}
+			s.pos++
 		}
 	}
 	return out.String(), nil

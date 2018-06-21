@@ -1,9 +1,11 @@
 package pattern
 
 import (
+	"fmt"
 	"reflect"
 	"sort"
 	"strconv"
+	"strings"
 	"testing"
 )
 
@@ -230,6 +232,33 @@ func TestApply(t *testing.T) {
 		t.Errorf("Apply(nil): got %q, wanted error", got)
 	} else {
 		t.Logf("Apply(nil) correctly failed: %v", err)
+	}
+}
+
+func TestApplyFunc(t *testing.T) {
+	p := MustParse(`${a} ${b} ${a} ${a} ${b} ${_c} f`, nil)
+
+	// Apply a custom value filter.
+	got, err := p.ApplyFunc(Binds{
+		{"a", "alpha"},
+		{"b", "bravo"},
+		{"_c", "charlie"},
+	}, func(i int, b Bind) string {
+		// The filter has access to the number of times this binding has been
+		// applied before this, as well as the name and the discovered value.
+		if strings.HasPrefix(b.Name, "_") {
+			return b.Expr
+		}
+		return fmt.Sprintf("%s-%d", b.Expr, i+1)
+	})
+	if err != nil {
+		t.Fatalf("ApplyFunc failed: %v", err)
+	}
+	t.Logf("ApplyFunc: %q", got)
+
+	const want = `alpha-1 bravo-1 alpha-2 alpha-3 bravo-2 charlie f`
+	if got != want {
+		t.Errorf("ApplyFunc: got %q, want %q", got, want)
 	}
 }
 
