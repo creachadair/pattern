@@ -148,6 +148,9 @@ func (p *P) Apply(binds []Bind) (string, error) {
 // the application being expanded.
 // The return value of f replaces the binding's original value.
 // ApplyFunc will panic if f == nil.
+//
+// Note: If f returns a value different from what is in its binding argument,
+// the resulting string can no longer be parsed to recover the given bindings.
 func (p *P) ApplyFunc(binds []Bind, f func(int, Bind) string) (string, error) {
 	type elt struct {
 		pos int      // how many times applied
