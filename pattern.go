@@ -35,8 +35,7 @@
 //
 // That is, a single word (allowing letters, digits, "_", and "-") enclosed in
 // curly brackets, prefixed by a dollar sign ($). To include a literal dollar
-// sign, double it ($$); all other characters are interpreted literally as
-// written.
+// sign, double it ($$); all other characters are interpreted as written.
 //
 // Each pattern word is an anchor to a location in the template string.  By
 // binding a regular expression to the name of each pattern word, we can use
