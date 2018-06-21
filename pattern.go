@@ -88,9 +88,9 @@ func (p *P) Binds() Binds {
 	return binds
 }
 
-// Bind reports whether name is a pattern word of p, and if so binds its
+// bind reports whether name is a pattern word of p, and if so binds its
 // matching expression to expr.
-func (p *P) Bind(name, expr string) bool {
+func (p *P) bind(name, expr string) bool {
 	if _, ok := p.rules[name]; ok {
 		p.rules[name] = expr
 		p.re = nil // invalidate cache
@@ -305,7 +305,7 @@ func Parse(s string, binds []Bind) (*P, error) {
 	}
 	p := &P{parts: parts, rules: rules}
 	for _, bind := range binds {
-		if !p.Bind(bind.Name, bind.Expr) {
+		if !p.bind(bind.Name, bind.Expr) {
 			return nil, fmt.Errorf("unknown pattern word %q", bind.Name)
 		}
 	}

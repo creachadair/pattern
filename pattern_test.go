@@ -97,11 +97,11 @@ func TestBinding(t *testing.T) {
 		{"dead", "horse", false},
 	}
 	for _, test := range tests {
-		got := p.Bind(test.name, test.expr)
+		got := p.bind(test.name, test.expr)
 		if got != test.ok {
-			t.Errorf("Bind %q: got %v, want %v", test.name, got, test.ok)
+			t.Errorf("p.bind(%q): got %v, want %v", test.name, got, test.ok)
 		} else if v := p.rules[test.name]; got && v != test.expr {
-			t.Errorf("Bind %q: got %q, want %q", test.name, v, test.expr)
+			t.Errorf("p.bind(%q): got %q, want %q", test.name, v, test.expr)
 		}
 	}
 }
