@@ -6,6 +6,26 @@
 // substrings; or it may be "applied" to a set of bindings to produce a
 // transformed string.
 //
+// The behavioural relationship between the methods of *pattern.P is that, if m
+// is the set of bindings from a successful match of p on s, i.e.,
+//
+//    m, err := p.Match(s)  // and err == nil
+//
+// then
+//
+//    t, err := p.Apply(m)  // gives err == nil
+//
+// will succeed leaving t == s. Likewise, if u is the string that results from
+// a successful application of a set of bindings b to p, i.e.,
+//
+//    u, err := p.Apply(b)  // and err == nil
+//
+// then
+//
+//    v, err := p.Match(u)  // gives err == nil
+//
+// will succeed leaving v == b.
+//
 // Template Grammar
 //
 // A template is a string that contains zero or more pattern words. A pattern
