@@ -51,11 +51,9 @@
 //
 // Derivation
 //
-// It is also possible to "derive" a new pattern from an existing one, by
-// supplying a new template string that refers to the same pattern words.  This
-// allows us to construct related patterns that operate on the same pattern
-// words, or a subset thereof. Use the Derive method to derive a new pattern
-// from an existing one.
+// It is also possible to "derive" a new pattern from an existing one using the
+// Derive method to introduce a new template string that refers to the same
+// pattern words, or a subset thereof.
 package pattern
 
 import (
