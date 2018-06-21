@@ -49,7 +49,11 @@ func TestParse(t *testing.T) {
 		if !reflect.DeepEqual(got.parts, test.parts) {
 			t.Errorf("Parse(%q) parts\ngot:  %+q\nwant: %+q", test.input, got.parts, test.parts)
 		}
-		rules := got.Names()
+		var rules []string
+		for name := range got.rules {
+			rules = append(rules, name)
+		}
+		sort.Strings(rules)
 		sort.Strings(test.rules)
 		if !reflect.DeepEqual(rules, test.rules) {
 			t.Errorf("Parse(%q) rules\ngot:  %+q\nwant: %+q", test.input, rules, test.rules)
@@ -325,12 +329,9 @@ func TestRoundTrip(t *testing.T) {
 		})
 
 		t.Run("Apply-Match", func(t *testing.T) {
-			var binds Binds
-			for i, name := range p.Names() {
-				binds = append(binds, Bind{
-					Name: name,
-					Expr: strconv.Itoa(i + 1),
-				})
+			binds := p.Binds()
+			for i, bind := range binds {
+				binds[i].Expr = bind.Name + strconv.Itoa(i+1)
 			}
 
 			s, err := p.Apply(binds)

@@ -61,7 +61,6 @@ import (
 	"fmt"
 	"regexp"
 	"regexp/syntax"
-	"sort"
 	"strings"
 )
 
@@ -74,14 +73,19 @@ type P struct {
 	re    *regexp.Regexp    // cache of compileRegexp
 }
 
-// Names returns the pattern word names defined by p.
-func (p *P) Names() []string {
-	var names []string
-	for name := range p.rules {
-		names = append(names, name)
+// Binds returns a list of bindings for p, in parsed order, populated with the
+// currently-bound expression strings. Modifying the result has no effect on p,
+// the caller may use this to generate a list of bindings to fill with values.
+func (p *P) Binds() Binds {
+	var binds Binds
+	for i := 1; i < len(p.parts); i += 2 {
+		part := p.parts[i]
+		binds = append(binds, Bind{
+			Name: part,
+			Expr: p.rules[part],
+		})
 	}
-	sort.Strings(names)
-	return names
+	return binds
 }
 
 // Bind reports whether name is a pattern word of p, and if so binds its
