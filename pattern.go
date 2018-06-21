@@ -274,6 +274,16 @@ func (bs Binds) All(key string) []string {
 	return all
 }
 
+// Has reports whether key is bound at least once in bs.
+func (bs Binds) Has(key string) bool {
+	for _, b := range bs {
+		if b.Name == key {
+			return true
+		}
+	}
+	return false
+}
+
 // Parse parses s into a pattern template, and binds the specified pattern
 // variables to the corresponding expressions.
 func Parse(s string, binds []Bind) (*P, error) {
