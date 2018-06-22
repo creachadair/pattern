@@ -203,6 +203,38 @@ func TestMatchErrors(t *testing.T) {
 	})
 }
 
+func TestSearch(t *testing.T) {
+	//                          1   1   2   2   2   3
+	//              0   4   8   2   6   0   4   8   2
+	const needle = `A1, B2, C3, D4, E5, F6, G7, H8, I9`
+	//              ^^              ^^              ^^
+	p := MustParse(`${x}${0}`, Binds{
+		{Name: "x", Expr: "[AEIOU]"}, {Name: "0", Expr: "[0-9]"},
+	})
+
+	want := map[string]int{"A1": 0, "E5": 16, "I9": 32}
+	got := make(map[string]int)
+
+	if err := p.Search(needle, func(i, j int, binds Binds) error {
+		// Check that the bound values are what the range contains.
+		a := binds.First("x") + binds.First("0")
+		b := needle[i:j]
+
+		if a != b {
+			t.Errorf("Search [%d:%d] bound %q ≠ indexed %q", i, j, a, b)
+		} else {
+			t.Logf("Search [%d:%d] bound=%q indexed=%q", i, j, a, b)
+		}
+		got[a] = i
+		return nil
+	}); err != nil {
+		t.Errorf("Search %q failed: %v", needle, err)
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("Search %q:\n got: %+v\nwant: %+v", needle, got, want)
+	}
+}
+
 func TestApply(t *testing.T) {
 	p := MustParse(`${thing} is as ${thing} ${verb}`, nil)
 	tests := []struct {

@@ -115,18 +115,24 @@ func (p *P) Match(needle string) (Binds, error) {
 	if m == nil || m[0] != 0 || m[1] != len(needle) {
 		return nil, ErrNoMatch
 	}
-	var binds []Bind
-	for i, name := range re.SubexpNames() {
-		a, b := m[2*i], m[2*i+1]
-		if name == "" || a < 0 {
-			continue
-		}
-		binds = append(binds, Bind{
-			Name: name,
-			Expr: needle[a:b],
-		})
+	return bindMatches(re, m, needle), nil
+}
+
+// Search scans needle for all non-overlapping matches of p. For each match,
+// Search calls f with the starting and ending offsets of the match, along with
+// the bindings captured from the match. If f reports an error, the search ends
+// and that error propagates to its caller.
+func (p *P) Search(needle string, f func(start, end int, binds Binds) error) error {
+	re, err := p.compileRegexp()
+	if err != nil {
+		return err
 	}
-	return binds, nil
+	for _, m := range re.FindAllStringSubmatchIndex(needle, -1) {
+		if err := f(m[0], m[1], bindMatches(re, m, needle)); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // ErrNoMatch is reported by Match when the pattern does not match the needle.
@@ -393,4 +399,21 @@ func parse(s string) (lit, pat []string, _ error) {
 		return nil, nil, fmt.Errorf("incomplete pattern word at %d", start)
 	}
 	return lit, pat, nil
+}
+
+// bindMatches extracts bindings from needle corresponding to the named capture
+// groups of re, given the submatch indices in m.
+func bindMatches(re *regexp.Regexp, m []int, needle string) Binds {
+	var binds []Bind
+	for i, name := range re.SubexpNames() {
+		a, b := m[2*i], m[2*i+1]
+		if name == "" || a < 0 {
+			continue
+		}
+		binds = append(binds, Bind{
+			Name: name,
+			Expr: needle[a:b],
+		})
+	}
+	return binds
 }
