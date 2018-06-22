@@ -120,8 +120,9 @@ func (p *P) Match(needle string) (Binds, error) {
 
 // Search scans needle for all non-overlapping matches of p. For each match,
 // Search calls f with the starting and ending offsets of the match, along with
-// the bindings captured from the match. If f reports an error, the search ends
-// and that error propagates to its caller.
+// the bindings captured from the match. If f reports an error, the search
+// ends.  If the error is ErrStopSearch, Search returns nil. Otherwise Search
+// returns the error from f.
 func (p *P) Search(needle string, f func(start, end int, binds Binds) error) error {
 	re, err := p.compileRegexp()
 	if err != nil {
@@ -129,11 +130,18 @@ func (p *P) Search(needle string, f func(start, end int, binds Binds) error) err
 	}
 	for _, m := range re.FindAllStringSubmatchIndex(needle, -1) {
 		if err := f(m[0], m[1], bindMatches(re, m, needle)); err != nil {
+			if err == ErrStopSearch {
+				return nil
+			}
 			return err
 		}
 	}
 	return nil
 }
+
+// ErrStopSearch is a special error value that can be returned by the callback
+// to Search to terminate search early without error.
+var ErrStopSearch = errors.New("stopped searching")
 
 // ErrNoMatch is reported by Match when the pattern does not match the needle.
 var ErrNoMatch = errors.New("string does not match pattern")
