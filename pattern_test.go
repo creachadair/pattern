@@ -248,17 +248,13 @@ func TestApplyFunc(t *testing.T) {
 	p := MustParse(`${a} ${b} ${a} ${a} ${b} ${_c} f`, nil)
 
 	// Apply a custom value filter.
-	got, err := p.ApplyFunc(Binds{
-		{"a", "alpha"},
-		{"b", "bravo"},
-		{"_c", "charlie"},
-	}, func(i int, b Bind) string {
-		// The filter has access to the number of times this binding has been
-		// applied before this, as well as the name and the discovered value.
-		if strings.HasPrefix(b.Name, "_") {
-			return b.Expr
+	val := map[string]string{"a": "alpha", "b": "bravo", "c": "charlie"}
+	got, err := p.ApplyFunc(func(name string, i int) (string, error) {
+		if trim := strings.TrimPrefix(name, "_"); trim != name {
+			return val[trim], nil
 		}
-		return fmt.Sprintf("%s-%d", b.Expr, i+1)
+		// Verify that the index reflects the correct ordering.
+		return fmt.Sprintf("%s-%d", val[name], i), nil
 	})
 	if err != nil {
 		t.Fatalf("ApplyFunc failed: %v", err)
