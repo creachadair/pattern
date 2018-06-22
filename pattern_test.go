@@ -39,6 +39,11 @@ func TestParse(t *testing.T) {
 		{"${a}b${c}d${e}", []string{"", "a", "b", "c", "d", "e"}, []string{"a", "c", "e"}},
 		{"${a}${b}", []string{"", "a", "", "b"}, []string{"a", "b"}},
 		{"a${b}${c}d", []string{"a", "b", "", "c", "d"}, []string{"b", "c"}},
+
+		// Content of word names.
+		{"${a:b} ${c/d} ${_e_} ${--F} ${+gee}",
+			[]string{"", "a:b", " ", "c/d", " ", "_e_", " ", "--F", " ", "+gee"},
+			[]string{"a:b", "c/d", "_e_", "--F", "+gee"}},
 	}
 	for _, test := range tests {
 		got, err := Parse(test.input, nil)
