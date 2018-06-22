@@ -33,10 +33,10 @@
 //
 //     ${name}
 //
-// That is, a single word (allowing letters, digits, "/", ":", "_", "-", and "+")
-// enclosed in curly brackets, prefixed by a dollar sign ($). To include a
-// literal dollar sign, double it ($$); all other characters are interpreted as
-// written.
+// That is, a single word (allowing letters, digits, "/", ":", "_", "-", "#",
+// and "+") enclosed in curly brackets, prefixed by a dollar sign ($). To
+// include a literal dollar sign, double it ($$); all other characters are
+// interpreted as written.
 //
 // Each pattern word is an anchor to a location in the template string.  By
 // binding a regular expression to the name of each pattern word, we can use
@@ -328,7 +328,7 @@ func MustParse(s string, binds []Bind) *P {
 
 func isWordRune(c rune) bool {
 	switch {
-	case c == '_', c == '-', c == '+', c == '/', c == ':':
+	case c == '_', c == '-', c == '+', c == '/', c == ':', c == '#':
 		return true
 	case c >= '0' && c <= '9', c >= 'a' && c <= 'z', c >= 'A' && c <= 'Z':
 		return true
