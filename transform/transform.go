@@ -9,28 +9,68 @@ import (
 	"bitbucket.org/creachadair/pattern"
 )
 
-// A T represents a reversible transformation between two templates, L and R.
+// An R represents a reversible transformation between two templates, L and R.
 // A reversible transformation has the property that its forward and reverse
 // applications are inverses of each other, meaning that if
 //
-//    a, err := t.Apply(x)  // and err == nil
+//    a, err := r.Apply(x)  // and err == nil
 //
 // then
 //
-//    b, err := t.Reverse().Apply(a)  // gives err == nil
+//    b, err := r.Reverse().Apply(a)
 //
 // succeeds with a == b, and vice versa.
+type R struct{ t *T }
+
+// NewReversible constructs a new reversible transformation from the template
+// strings lhs and rhs, and the bindings shared by both templates.  If the
+// resulting transformation is not reversible, it returns ErrNotReversible.
+func NewReversible(lhs, rhs string, binds pattern.Binds) (R, error) {
+	t, err := New(lhs, rhs, binds)
+	if err != nil {
+		if _, ok := err.(*pattern.ParseError); !ok {
+			err = ErrNotReversible
+		}
+		return R{}, err
+	} else if !reversible(t.lhs.Binds(), t.rhs.Binds()) {
+		return R{}, ErrNotReversible
+	}
+	return R{t: t}, nil
+}
+
+// MustReversible is as NewReversible, but panics if an error is reported. This
+// function exists to support static initialization.
+func MustReversible(lhs, rhs string, binds pattern.Binds) R {
+	r, err := NewReversible(lhs, rhs, binds)
+	if err != nil {
+		panic("transform: " + err.Error())
+	}
+	return r
+}
+
+// Reverse returns the reverse transformation of R, with its left and right
+// templates in the opposite order.
+func (r R) Reverse() R { return R{t: &T{lhs: r.t.rhs, rhs: r.t.lhs}} }
+
+// Apply applies the transformation, as (*T).Apply.
+func (r R) Apply(needle string) (string, error) { return r.t.Apply(needle) }
+
+// Search performs the search transformation, as (*T).Search.
+func (r R) Search(needle string, f func(string) error) error { return r.t.Search(needle, f) }
+
+// ErrNotReversible is returned by NewReversible if its template arguments do
+// not produce a reversible transformation.
+var ErrNotReversible = errors.New("transformation is not reversible")
+
+// A T represents a transformation between two templates, L and R.  Applying
+// the transformation matches L against the needle, and if it matches applies
+// the resulting bindings to R.
 type T struct {
 	lhs, rhs *pattern.P
 }
 
-// ErrNotReversible is returned by Transformer if its template arguments do not
-// produce a reversible transformation.
-var ErrNotReversible = errors.New("transformation is not reversible")
-
-// New constructs a new reversible transformation from the template strings lhs
-// and rhs, and the bindings shared by both templates.  If the resulting
-// transformation is not reversible, it returns ErrNotReversible.
+// New constructs a new transformation from the template strings lhs and rhs,
+// and the bindings shared by both templates.
 func New(lhs, rhs string, binds pattern.Binds) (*T, error) {
 	lp, err := pattern.Parse(lhs, binds)
 	if err != nil {
@@ -38,13 +78,7 @@ func New(lhs, rhs string, binds pattern.Binds) (*T, error) {
 	}
 	rp, err := lp.Derive(rhs)
 	if err != nil {
-		if _, ok := err.(*pattern.ParseError); ok {
-			return nil, fmt.Errorf("parsing %q: %v", rhs, err)
-		}
-		return nil, ErrNotReversible
-	}
-	if !reversible(lp.Binds(), rp.Binds()) {
-		return nil, ErrNotReversible
+		return nil, err
 	}
 	return &T{lhs: lp, rhs: rp}, nil
 }
@@ -54,14 +88,10 @@ func New(lhs, rhs string, binds pattern.Binds) (*T, error) {
 func Must(lhs, rhs string, binds pattern.Binds) *T {
 	t, err := New(lhs, rhs, binds)
 	if err != nil {
-		panic("pattern: " + err.Error())
+		panic("transform: " + err.Error())
 	}
 	return t
 }
-
-// Reverse returns the reverse transformation of T, with left and right
-// templates in opposite order.
-func (t *T) Reverse() *T { return &T{lhs: t.rhs, rhs: t.lhs} }
 
 // Apply matches needle against the left pattern of t, and if it matches
 // applies the result to the right pattern of t.
