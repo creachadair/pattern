@@ -389,20 +389,22 @@ func TestRoundTrip(t *testing.T) {
 				t.Errorf("Apply %+v failed: %v", m, err)
 			} else if got != test.input {
 				t.Errorf("Apply %+v: got %q, want %q", m, got, test.input)
+			} else {
+				t.Logf("Apply 1: %q", got)
 			}
 		})
 
 		t.Run("Apply-Match", func(t *testing.T) {
 			binds := p.Binds()
-			for i, bind := range binds {
-				binds[i].Expr = bind.Name + strconv.Itoa(i+1)
+			for i := range binds {
+				binds[i].Expr = strconv.Itoa(10 * (i + 1))
 			}
 
 			s, err := p.Apply(binds)
 			if err != nil {
 				t.Fatalf("Apply %+v failed: %v", binds, err)
 			}
-			t.Logf("Apply: %q", s)
+			t.Logf("Apply 2: %q", s)
 
 			got, err := p.Match(s)
 			if err != nil {
