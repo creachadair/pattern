@@ -393,19 +393,19 @@ func parse(s string) (lit, pat []string, _ error) {
 				buf.Reset()
 				st = word
 			} else {
-				return nil, nil, fmt.Errorf("wanted $ or { but found '%c' at %d", c, i)
+				return nil, nil, perrorf("wanted $ or { but found '%c' at %d", c, i)
 			}
 
 		case word:
 			if c == '}' {
 				if buf.Len() == 0 {
-					return nil, nil, fmt.Errorf("empty pattern word at %d", start)
+					return nil, nil, perrorf("empty pattern word at %d", start)
 				}
 				pat = append(pat, buf.String())
 				buf.Reset()
 				st = free
 			} else if !isWordRune(c) {
-				return nil, nil, fmt.Errorf("invalid name letter '%c' at %d", c, i)
+				return nil, nil, perrorf("invalid name letter '%c' at %d", c, i)
 			} else {
 				buf.WriteRune(c)
 			}
@@ -416,9 +416,9 @@ func parse(s string) (lit, pat []string, _ error) {
 	}
 	switch st {
 	case dollar:
-		return nil, nil, fmt.Errorf("incomplete $ escape at %d", start)
+		return nil, nil, perrorf("incomplete $ escape at %d", start)
 	case word:
-		return nil, nil, fmt.Errorf("incomplete pattern word at %d", start)
+		return nil, nil, perrorf("incomplete pattern word at %d", start)
 	}
 	return lit, pat, nil
 }
@@ -438,4 +438,12 @@ func bindMatches(re *regexp.Regexp, m []int, needle string) Binds {
 		})
 	}
 	return binds
+}
+
+type parseError string
+
+func (p parseError) Error() string { return string(p) }
+
+func perrorf(msg string, args ...interface{}) parseError {
+	return parseError(fmt.Sprintf(msg, args...))
 }
