@@ -15,16 +15,7 @@
 //
 //    t, err := p.Apply(m)  // gives err == nil
 //
-// will succeed leaving t == s. Likewise, if u is the string that results from
-// a successful application of a set of bindings b to p, i.e.,
-//
-//    u, err := p.Apply(b)  // and err == nil
-//
-// then
-//
-//    v, err := p.Match(u)  // gives err == nil
-//
-// will succeed leaving v == b.
+// will succeed leaving t == s.
 //
 // Template Grammar
 //
