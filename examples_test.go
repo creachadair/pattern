@@ -49,39 +49,35 @@ func Example() {
 	// Grade: A-
 }
 
-func Example_roundTrip() {
-	p := pattern.MustParse(`git@${host}:${user}/${repo}.git`, pattern.Binds{
+func Example_transform() {
+	const lhs = `git@${host}:${user}/${repo}.git`
+	const rhs = `http://${host}/${user}/${repo}`
+
+	t := pattern.MustTransform(lhs, rhs, pattern.Binds{
 		{Name: "host", Expr: `\w+(\.\w+)*`},
 		{Name: "user", Expr: `\w+`},
 		{Name: "repo", Expr: `\w+`},
 	})
 
 	const input = `git@bitbucket.org:creachadair/stringset.git`
-	m, err := p.Match(input)
-	if err != nil {
-		log.Fatalln("Match:", err)
-	}
+	fmt.Println("input:", input)
 
-	// Apply the bindings to a derived pattern.
-	d, err := p.Derive(`http://${host}/${user}/${repo}`)
+	// Forward transform the input to get output.
+	output, err := t.Forward(input)
 	if err != nil {
-		log.Fatalln("Derive:", err)
+		log.Fatalf("Forward: %v", err)
 	}
-	do, err := d.Apply(m)
-	if err != nil {
-		log.Fatalln("Apply:", err)
-	}
+	fmt.Println("output:", output)
 
-	// Applying the same bindings to the original pattern should recover the
-	// input string.
-	oo, err := p.Apply(m)
+	// Reverse transform the output to recover the input.
+	check, err := t.Reverse(output)
 	if err != nil {
-		log.Fatalln("Apply:", err)
+		log.Fatalf("Reverse: %v", err)
 	}
+	fmt.Printf("check == input: %v", check == input)
 
-	fmt.Println(" derived: ", do)
-	fmt.Println(" original:", oo, oo == input)
 	// Output:
-	//  derived:  http://bitbucket.org/creachadair/stringset
-	//  original: git@bitbucket.org:creachadair/stringset.git true
+	// input: git@bitbucket.org:creachadair/stringset.git
+	// output: http://bitbucket.org/creachadair/stringset
+	// check == input: true
 }
