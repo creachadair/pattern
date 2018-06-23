@@ -330,31 +330,6 @@ func TestApplyFunc(t *testing.T) {
 	}
 }
 
-func TestDerive(t *testing.T) {
-	p := MustParse(`A ${x} in the ${y} is worth ${n} in the ${x}`, []Bind{
-		{"x", "\\w+"}, {"y", "(hand|pocket|face)"}, {"n", "\\d+"},
-	})
-
-	// Derive a new pattern from p that mentions the same bindings.
-	q, err := p.Derive("I have ${n} ${x}s in my ${y}")
-	if err != nil {
-		t.Fatalf("Derive failed: %v", err)
-	}
-
-	// Match against the original pattern to get some values.
-	m, err := p.Match("A ferret in the pocket is worth 20 in the face")
-	if err != nil {
-		t.Fatalf("Match failed: %v", err)
-	}
-
-	// Apply the values to the derived pattern.
-	got, err := q.Apply(m)
-	if err != nil {
-		t.Fatalf("Apply failed: %v", err)
-	}
-	t.Logf("Apply OK, got %q", got)
-}
-
 func TestRoundTrip(t *testing.T) {
 	// Verify that the bindings from a match can be applied to recover the
 	// original string.
@@ -413,55 +388,5 @@ func TestRoundTrip(t *testing.T) {
 				t.Errorf("Match:\n got:  %+v\n want: %+v", got, binds)
 			}
 		})
-	}
-}
-
-func TestDerived(t *testing.T) {
-	p := MustParse("Mary ${act}s Jane${p}", Binds{
-		{Name: "act", Expr: `\w+`},
-		{Name: "p", Expr: "[.?!]?"},
-	})
-	tests := []struct {
-		derived     string
-		input, want string
-	}{
-		// The derived string doesn't use any of the bindings.
-		{"nothing to see here", "Mary asks Jane.", "nothing to see here"},
-
-		// The derived string uses one binding, the other is empty.
-		{"shut up and ${act} me", "Mary blames Jane", "shut up and blame me"},
-
-		// The derived string uses both bindings, both are non-empty.
-		{"${act} like an animal${p}", "Mary loves Jane?", "love like an animal?"},
-
-		// The derived string uses the same binding more than once.
-		{"${act}${p} or be ${act}en", "Mary eats Jane!", "eat! or be eaten"},
-
-		// The derived string uses only one binding, but multiple times.
-		{"It's dark${p} Too dark${p}", "Mary likes Jane.", "It's dark. Too dark."},
-	}
-	for _, test := range tests {
-		q, err := p.Derive(test.derived)
-		if err != nil {
-			t.Errorf("Derive %q failed: %v", test.derived, err)
-			continue
-		}
-
-		m, err := p.Match(test.input)
-		if err != nil {
-			t.Errorf("Match %q failed: %v", test.input, err)
-			continue
-		}
-
-		got, err := q.Apply(m)
-		if err != nil {
-			t.Errorf("Apply %+v failed: %v", m, err)
-			continue
-		}
-		t.Logf("Derived: %q", got)
-
-		if got != test.want {
-			t.Logf("Apply %+v: got %q, want %q", m, got, test.want)
-		}
 	}
 }
