@@ -88,10 +88,14 @@ import (
 type P struct {
 	// Even indexes are literal parts of the pattern, odd indexes are the names
 	// of pattern words.
-	parts []string
-	rules map[string]string // :: pattern word → regexp
-	re    *regexp.Regexp    // cache of compileRegexp
+	parts    []string
+	template string            // the original template
+	rules    map[string]string // :: pattern word → regexp
+	re       *regexp.Regexp    // cache of compileRegexp
 }
+
+// String returns the original template string from which p was parsed.
+func (p *P) String() string { return p.template }
 
 // Binds returns a list of bindings for p, in parsed order, populated with the
 // currently-bound expression strings. Modifying the result has no effect on p,
@@ -231,7 +235,7 @@ func (p *P) Derive(s string) (*P, error) {
 			return nil, fmt.Errorf("unknown pattern word %q", name)
 		}
 	}
-	out := &P{rules: make(map[string]string)}
+	out := &P{template: s, rules: make(map[string]string)}
 	for i, part := range lit {
 		out.parts = append(out.parts, part)
 		if i < len(pat) {
@@ -338,7 +342,7 @@ func Parse(s string, binds []Bind) (*P, error) {
 			rules[pat[i]] = ""
 		}
 	}
-	p := &P{parts: parts, rules: rules}
+	p := &P{template: s, parts: parts, rules: rules}
 	for _, bind := range binds {
 		if !p.bind(bind.Name, bind.Expr) {
 			return nil, fmt.Errorf("unknown pattern word %q", bind.Name)
