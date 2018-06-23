@@ -24,10 +24,10 @@ type T struct {
 // produce a reversible transformation.
 var ErrNotReversible = errors.New("transformation is not reversible")
 
-// Transformer constructs a new reversible transformation from the template
+// NewTransform constructs a new reversible transformation from the template
 // strings lhs and rhs, and the bindings shared by both templates.  If the
 // resulting transformation is not reversible, it returns ErrNotReversible.
-func Transformer(lhs, rhs string, binds Binds) (*T, error) {
+func NewTransform(lhs, rhs string, binds Binds) (*T, error) {
 	lp, err := Parse(lhs, binds)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %v", lhs, err)
@@ -43,6 +43,16 @@ func Transformer(lhs, rhs string, binds Binds) (*T, error) {
 		return nil, ErrNotReversible
 	}
 	return &T{lhs: lp, rhs: rp}, nil
+}
+
+// MustTransform is as NewTransform, but panics if an error is reported. This
+// function exists to support static initialization.
+func MustTransform(lhs, rhs string, binds Binds) *T {
+	t, err := NewTransform(lhs, rhs, binds)
+	if err != nil {
+		panic("pattern: " + err.Error())
+	}
+	return t
 }
 
 // Forward matches needle against the left pattern of t, and if it matches

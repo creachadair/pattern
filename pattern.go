@@ -326,7 +326,7 @@ func Parse(s string, binds []Bind) (*P, error) {
 }
 
 // MustParse parses s into a pattern template, as Parse, but panics if parsing
-// fails. This function exists to support initialization of static variables.
+// fails. This function exists to support static initialization.
 func MustParse(s string, binds []Bind) *P {
 	p, err := Parse(s, binds)
 	if err != nil {

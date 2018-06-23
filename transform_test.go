@@ -39,7 +39,7 @@ func TestReversible(t *testing.T) {
 	}
 }
 
-func TestTransformer(t *testing.T) {
+func TestNewTransform(t *testing.T) {
 	tests := []struct {
 		name     string
 		lhs, rhs string
@@ -75,9 +75,9 @@ func TestTransformer(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			tut, err := Transformer(test.lhs, test.rhs, test.binds)
+			tut, err := NewTransform(test.lhs, test.rhs, test.binds)
 			if err != nil {
-				t.Fatalf("Transformer(%q, %q, ...) failed: %v", test.lhs, test.rhs, err)
+				t.Fatalf("NewTransform(%q, %q, ...) failed: %v", test.lhs, test.rhs, err)
 			}
 			a, err := tut.Forward(test.input)
 			if err != nil {
@@ -96,7 +96,7 @@ func TestTransformer(t *testing.T) {
 	}
 }
 
-func TestTransformerErrors(t *testing.T) {
+func TestNewTransformErrors(t *testing.T) {
 	nonrev := []struct {
 		lhs, rhs string
 	}{
@@ -107,18 +107,18 @@ func TestTransformerErrors(t *testing.T) {
 		{"${b} + ${x} + ${b}", "${x} + ${b} + ${x}"},
 	}
 	for _, test := range nonrev {
-		tut, err := Transformer(test.lhs, test.rhs, nil)
+		tut, err := NewTransform(test.lhs, test.rhs, nil)
 		if err != ErrNotReversible {
-			t.Errorf("Transformer(%q, %q, _): got (%v, %v), want: %v",
+			t.Errorf("NewTransform(%q, %q, _): got (%v, %v), want: %v",
 				test.lhs, test.rhs, tut, err, ErrNotReversible)
 		}
 	}
 	const bogus = "${"
-	if tut, err := Transformer(bogus, "OK", nil); err == nil {
-		t.Errorf("Transformer(%q, OK, _): got %+v, wanted error", bogus, tut)
+	if tut, err := NewTransform(bogus, "OK", nil); err == nil {
+		t.Errorf("NewTransform(%q, OK, _): got %+v, wanted error", bogus, tut)
 	}
-	if tut, err := Transformer("OK", bogus, nil); err == nil {
-		t.Errorf("Transformer(OK, %q, _): got %+v, wanted error", bogus, tut)
+	if tut, err := NewTransform("OK", bogus, nil); err == nil {
+		t.Errorf("NewTransform(OK, %q, _): got %+v, wanted error", bogus, tut)
 	}
 }
 
