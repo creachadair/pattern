@@ -6,17 +6,6 @@
 // substrings; or it may be "applied" to a set of bindings to produce a
 // transformed string.
 //
-// The behavioural relationship between the methods of *pattern.P is that, if m
-// is the set of bindings from a successful match of p on s, i.e.,
-//
-//    m, err := p.Match(s)  // and err == nil
-//
-// then
-//
-//    t, err := p.Apply(m)  // gives err == nil
-//
-// will succeed leaving t == s.
-//
 // Template Grammar
 //
 // A template is a string that contains zero or more pattern words. A pattern
@@ -58,12 +47,6 @@
 // interpolates them into the template; ApplyFunc invokes a callback to
 // generate the strings to interpolate.
 //
-// Derivation
-//
-// The Derive method "derives" a new pattern from an existing one, by
-// introducing a new template string that refers to the same pattern words (or
-// a subset thereof). Unlike Parse, the Derive method does not introduce any
-// new bindings.
 package pattern
 
 import (
@@ -213,9 +196,9 @@ func (p *P) ApplyFunc(f BindFunc) (string, error) {
 	return out.String(), nil
 }
 
-// Derive constructs a new compiled pattern from p, using the same pattern
-// words but with s as the template instead. It is an error if s refers to any
-// pattern words not known to p.
+// Derive constructs a new compiled pattern, using the same pattern words as p
+// but with s as the template instead. It is an error if s refers to a pattern
+// word not known to p.
 func (p *P) Derive(s string) (*P, error) {
 	lit, pat, err := parse(s)
 	if err != nil {
