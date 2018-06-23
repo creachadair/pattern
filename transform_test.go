@@ -82,13 +82,13 @@ func TestNewTransform(t *testing.T) {
 					t.Fatalf("NewTransform(%q, %q, ...) failed: %v", test.lhs, test.rhs, err)
 				}
 
-				a, err := tut.Forward(test.input)
+				a, err := tut.Apply(test.input)
 				if err != nil {
 					t.Fatalf("Forward(%q) failed: %v", test.input, err)
 				}
 				t.Logf("Forward(%q) = %q", test.input, a)
 
-				b, err := tut.Reverse(a)
+				b, err := tut.Reverse().Apply(a)
 				if err != nil {
 					t.Fatalf("Reverse(%q) failed: %v", a, err)
 				}
@@ -107,13 +107,13 @@ func TestNewTransform(t *testing.T) {
 					t.Fatalf("NewTransform(%q, %q, ...) failed: %v", test.rhs, test.lhs, err)
 				}
 
-				b, err := tut.Reverse(test.input)
+				b, err := tut.Reverse().Apply(test.input)
 				if err != nil {
 					t.Fatalf("Reverse(%q) failed: %v", test.input, err)
 				}
 				t.Logf("Reverse(%q) = %q", test.input, b)
 
-				a, err := tut.Forward(b)
+				a, err := tut.Apply(b)
 				if err != nil {
 					t.Fatalf("Forward(%q) failed: %v", b, err)
 				}

@@ -9,13 +9,13 @@ import (
 // A reversible transformation has the property that its forward and reverse
 // applications are inverses of each other, meaning that if
 //
-//    a, err := t.Forward(x)  // and err == nil
+//    a, err := t.Apply(x)  // and err == nil
 //
 // then
 //
-//    b, err := t.Reverse(a)  // gives err == nil
+//    b, err := t.Reverse().Apply(a)  // gives err == nil
 //
-// succeeds with a == b, and vice versa with Forward and Reverse exchanged.
+// succeeds with a == b, and vice versa.
 type T struct {
 	lhs, rhs *P
 }
@@ -55,16 +55,18 @@ func MustTransform(lhs, rhs string, binds Binds) *T {
 	return t
 }
 
-// Forward matches needle against the left pattern of t, and if it matches
-// applies the result to the right pattern of t.
-func (t *T) Forward(needle string) (string, error) {
-	return matchApply(t.lhs, t.rhs, needle)
-}
+// Reverse returns the reverse transformation of T, with left and right
+// templates in opposite order.
+func (t *T) Reverse() *T { return &T{lhs: t.rhs, rhs: t.lhs} }
 
-// Reverse matches needle against the right pattern of t, and if it matches
-// applies the result to the left pattern of t.
-func (t *T) Reverse(needle string) (string, error) {
-	return matchApply(t.rhs, t.lhs, needle)
+// Apply matches needle against the left pattern of t, and if it matches
+// applies the result to the right pattern of t.
+func (t *T) Apply(needle string) (string, error) {
+	ms, err := t.lhs.Match(needle)
+	if err != nil {
+		return "", err
+	}
+	return t.rhs.Apply(ms)
 }
 
 // reversible reports whether two sets of bindings are mutually saturating,
@@ -91,12 +93,4 @@ func reversible(a, b Binds) bool {
 		}
 	}
 	return true
-}
-
-func matchApply(p, q *P, needle string) (string, error) {
-	ms, err := p.Match(needle)
-	if err != nil {
-		return "", err
-	}
-	return q.Apply(ms)
 }
