@@ -42,7 +42,7 @@
 // binding a regular expression to the name of each pattern word, we can use
 // the pattern to "match" strings whose contents, at locations corresponding to
 // the anchors in the template string, match the corresponding regexp.  Use the
-// Bind and Match methods to perform binding and matching, respectively
+// Match (or Search) methods to match (or search for) a pattern in a string.
 //
 // In addition, the pattern word anchors allow us to "apply" the template to a
 // set of name-value bindings, to obtain a new string with the specified values
