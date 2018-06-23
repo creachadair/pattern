@@ -1,4 +1,4 @@
-// Package pattern implements reversible transformations between strings.
+// Package pattern implements template-based string matching and substitution.
 //
 // A *pattern.P represents a template string containing a number of pattern
 // words, which are named locations where substitution may occur. A pattern may
@@ -46,13 +46,6 @@
 // ApplyFunc methods. Apply takes an ordered list of Bind values and
 // interpolates them into the template; ApplyFunc invokes a callback to
 // generate the strings to interpolate.
-//
-// Transformation
-//
-// A *pattern.T represents a reversible transformation between a pair of
-// patterns that share a common set of pattern bindings. Applying a transform
-// combines a Match against the first pattern with an Apply of the second.  A
-// transform can be reversed to invert the order of match and apply.
 package pattern
 
 import (
