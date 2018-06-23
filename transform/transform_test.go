@@ -1,8 +1,10 @@
-package pattern
+package transform
 
 import (
 	"strings"
 	"testing"
+
+	"bitbucket.org/creachadair/pattern"
 )
 
 func TestReversible(t *testing.T) {
@@ -46,33 +48,33 @@ func TestTransformApply(t *testing.T) {
 	tests := []struct {
 		name     string
 		lhs, rhs string
-		binds    Binds
+		binds    pattern.Binds
 		input    string
 	}{
 		{"empty", "", "", nil, ""},
 
 		{"static", "x", "y", nil, "x"},
 
-		{"simple", "x${0}", "${0}y", Binds{{"0", "\\d+"}}, "x22"},
+		{"simple", "x${0}", "${0}y", pattern.Binds{{"0", "\\d+"}}, "x22"},
 
 		{"multi-single-ordered",
 			"${1} or ${2} things",
 			"{${1}, ${2}}",
-			Binds{{"1", "\\d+"}, {"2", "\\d+"}},
+			pattern.Binds{{"1", "\\d+"}, {"2", "\\d+"}},
 			"5 or 6 things",
 		},
 
 		{"multi-single-unordered",
 			"all your ${x} are belong to ${y}",
 			"give ${y} your ${x}",
-			Binds{{"x", "base"}, {"y", "us"}},
+			pattern.Binds{{"x", "base"}, {"y", "us"}},
 			"all your base are belong to us",
 		},
 
 		{"multi-repeated-unordered",
 			"a ${adj} ${adj} ${noun} came by",
 			"I want a ^${adj} ^${noun} that is ^${adj}",
-			Binds{{"adj", "(little|blue)"}, {"noun", "car"}},
+			pattern.Binds{{"adj", "(little|blue)"}, {"noun", "car"}},
 			"a little blue car came by",
 		},
 	}
@@ -80,9 +82,9 @@ func TestTransformApply(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			// Verify that forward | reverse is the identity transformation.
 			t.Run("FR", func(t *testing.T) {
-				tut, err := NewTransform(test.lhs, test.rhs, test.binds)
+				tut, err := New(test.lhs, test.rhs, test.binds)
 				if err != nil {
-					t.Fatalf("NewTransform(%q, %q, ...) failed: %v", test.lhs, test.rhs, err)
+					t.Fatalf("New(%q, %q, ...) failed: %v", test.lhs, test.rhs, err)
 				}
 
 				a, err := tut.Apply(test.input)
@@ -105,9 +107,9 @@ func TestTransformApply(t *testing.T) {
 			// Verify that reverse | forward is the identity transformation.
 			// Note that the LHS and RHS are swapped here.
 			t.Run("RF", func(t *testing.T) {
-				tut, err := NewTransform(test.rhs, test.lhs, test.binds)
+				tut, err := New(test.rhs, test.lhs, test.binds)
 				if err != nil {
-					t.Fatalf("NewTransform(%q, %q, ...) failed: %v", test.rhs, test.lhs, err)
+					t.Fatalf("New(%q, %q, ...) failed: %v", test.rhs, test.lhs, err)
 				}
 
 				b, err := tut.Reverse().Apply(test.input)
@@ -130,7 +132,7 @@ func TestTransformApply(t *testing.T) {
 	}
 }
 
-func TestNewTransformErrors(t *testing.T) {
+func TestNewErrors(t *testing.T) {
 	nonrev := []struct {
 		lhs, rhs string
 	}{
@@ -141,23 +143,23 @@ func TestNewTransformErrors(t *testing.T) {
 		{"${b} + ${x} + ${b}", "${x} + ${b} + ${x}"},
 	}
 	for _, test := range nonrev {
-		tut, err := NewTransform(test.lhs, test.rhs, nil)
+		tut, err := New(test.lhs, test.rhs, nil)
 		if err != ErrNotReversible {
-			t.Errorf("NewTransform(%q, %q, _): got (%v, %v), want: %v",
+			t.Errorf("New(%q, %q, _): got (%v, %v), want: %v",
 				test.lhs, test.rhs, tut, err, ErrNotReversible)
 		}
 	}
 	const bogus = "${"
-	if tut, err := NewTransform(bogus, "OK", nil); err == nil {
-		t.Errorf("NewTransform(%q, OK, _): got %+v, wanted error", bogus, tut)
+	if tut, err := New(bogus, "OK", nil); err == nil {
+		t.Errorf("New(%q, OK, _): got %+v, wanted error", bogus, tut)
 	}
-	if tut, err := NewTransform("OK", bogus, nil); err == nil {
-		t.Errorf("NewTransform(OK, %q, _): got %+v, wanted error", bogus, tut)
+	if tut, err := New("OK", bogus, nil); err == nil {
+		t.Errorf("New(OK, %q, _): got %+v, wanted error", bogus, tut)
 	}
 }
 
 func TestTransformSearch(t *testing.T) {
-	tut := MustTransform("(${n} ${op} ${n})", "${n} ${n} ${op}", Binds{
+	tut := Must("(${n} ${op} ${n})", "${n} ${n} ${op}", pattern.Binds{
 		{"n", "\\d+"}, {"op", "[-+*/]"},
 	})
 	const A = "(5 + 3)\n(2 * 4)\n(6 - 3)\n(9 / 1)"
@@ -188,9 +190,9 @@ func TestTransformSearch(t *testing.T) {
 	}
 }
 
-func makeBinds(ss []string) (bs Binds) {
+func makeBinds(ss []string) (bs pattern.Binds) {
 	for _, s := range ss {
-		bs = append(bs, Bind{Name: s})
+		bs = append(bs, pattern.Bind{Name: s})
 	}
 	return
 }

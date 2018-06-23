@@ -1,8 +1,12 @@
-package pattern
+// Package transform implements pattern transformations between pairs of string
+// templates, as defined by the bitbucket.org/creachadair/pattern package.
+package transform
 
 import (
 	"errors"
 	"fmt"
+
+	"bitbucket.org/creachadair/pattern"
 )
 
 // A T represents a reversible transformation between two templates, L and R.
@@ -17,24 +21,24 @@ import (
 //
 // succeeds with a == b, and vice versa.
 type T struct {
-	lhs, rhs *P
+	lhs, rhs *pattern.P
 }
 
 // ErrNotReversible is returned by Transformer if its template arguments do not
 // produce a reversible transformation.
 var ErrNotReversible = errors.New("transformation is not reversible")
 
-// NewTransform constructs a new reversible transformation from the template
-// strings lhs and rhs, and the bindings shared by both templates.  If the
-// resulting transformation is not reversible, it returns ErrNotReversible.
-func NewTransform(lhs, rhs string, binds Binds) (*T, error) {
-	lp, err := Parse(lhs, binds)
+// New constructs a new reversible transformation from the template strings lhs
+// and rhs, and the bindings shared by both templates.  If the resulting
+// transformation is not reversible, it returns ErrNotReversible.
+func New(lhs, rhs string, binds pattern.Binds) (*T, error) {
+	lp, err := pattern.Parse(lhs, binds)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %v", lhs, err)
 	}
 	rp, err := lp.Derive(rhs)
 	if err != nil {
-		if _, ok := err.(parseError); ok {
+		if _, ok := err.(*pattern.ParseError); ok {
 			return nil, fmt.Errorf("parsing %q: %v", rhs, err)
 		}
 		return nil, ErrNotReversible
@@ -45,10 +49,10 @@ func NewTransform(lhs, rhs string, binds Binds) (*T, error) {
 	return &T{lhs: lp, rhs: rp}, nil
 }
 
-// MustTransform is as NewTransform, but panics if an error is reported. This
-// function exists to support static initialization.
-func MustTransform(lhs, rhs string, binds Binds) *T {
-	t, err := NewTransform(lhs, rhs, binds)
+// Must is as New, but panics if an error is reported. This function exists to
+// support static initialization.
+func Must(lhs, rhs string, binds pattern.Binds) *T {
+	t, err := New(lhs, rhs, binds)
 	if err != nil {
 		panic("pattern: " + err.Error())
 	}
@@ -75,7 +79,7 @@ func (t *T) Apply(needle string) (string, error) {
 // ends.  If the error is ErrStopSearch, Search returns nil. Otherwise Search
 // returns the error from f.
 func (t *T) Search(needle string, f func(string) error) error {
-	return t.lhs.Search(needle, func(start, end int, binds Binds) error {
+	return t.lhs.Search(needle, func(start, end int, binds pattern.Binds) error {
 		out, err := t.rhs.Apply(binds)
 		if err != nil {
 			return err
@@ -88,7 +92,7 @@ func (t *T) Search(needle string, f func(string) error) error {
 // meaning that each contains at least as many values for each binding as the
 // other requires. This check does not reflect permutations of order within
 // bindings of the same name (since it doesn't examine values).
-func reversible(a, b Binds) bool {
+func reversible(a, b pattern.Binds) bool {
 	na := make(map[string]int)
 	for _, bind := range a {
 		na[bind.Name]++

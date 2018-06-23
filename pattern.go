@@ -382,19 +382,19 @@ func parse(s string) (lit, pat []string, _ error) {
 				buf.Reset()
 				st = word
 			} else {
-				return nil, nil, perrorf("wanted $ or { but found '%c' at %d", c, i)
+				return nil, nil, perrorf(i, "wanted $ or { but found '%c'", c)
 			}
 
 		case word:
 			if c == '}' {
 				if buf.Len() == 0 {
-					return nil, nil, perrorf("empty pattern word at %d", start)
+					return nil, nil, perrorf(start, "empty pattern word")
 				}
 				pat = append(pat, buf.String())
 				buf.Reset()
 				st = free
 			} else if !isWordRune(c) {
-				return nil, nil, perrorf("invalid name letter '%c' at %d", c, i)
+				return nil, nil, perrorf(i, "invalid name letter '%c'", c)
 			} else {
 				buf.WriteRune(c)
 			}
@@ -405,9 +405,9 @@ func parse(s string) (lit, pat []string, _ error) {
 	}
 	switch st {
 	case dollar:
-		return nil, nil, perrorf("incomplete $ escape at %d", start)
+		return nil, nil, perrorf(start, "incomplete $ escape")
 	case word:
-		return nil, nil, perrorf("incomplete pattern word at %d", start)
+		return nil, nil, perrorf(start, "incomplete pattern word")
 	}
 	return lit, pat, nil
 }
@@ -429,10 +429,14 @@ func bindMatches(re *regexp.Regexp, m []int, needle string) Binds {
 	return binds
 }
 
-type parseError string
+// ParseError is the concrete type of parsing errors.
+type ParseError struct {
+	Pos     int    // offset where error occurred
+	Message string // description of error
+}
 
-func (p parseError) Error() string { return string(p) }
+func (p *ParseError) Error() string { return fmt.Sprintf("at %d: %s", p.Pos, p.Message) }
 
-func perrorf(msg string, args ...interface{}) parseError {
-	return parseError(fmt.Sprintf(msg, args...))
+func perrorf(pos int, msg string, args ...interface{}) *ParseError {
+	return &ParseError{pos, fmt.Sprintf(msg, args...)}
 }
