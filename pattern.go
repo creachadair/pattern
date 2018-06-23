@@ -202,6 +202,30 @@ func (p *P) ApplyFunc(f BindFunc) (string, error) {
 	return out.String(), nil
 }
 
+// Derive constructs a new compiled pattern, using the same pattern words as p
+// but with s as the template instead. It is an error if s refers to a pattern
+// word not known to p.
+func (p *P) Derive(s string) (*P, error) {
+	lit, pat, err := parse(s)
+	if err != nil {
+		return nil, err
+	}
+	for _, name := range pat {
+		if _, ok := p.rules[name]; !ok {
+			return nil, fmt.Errorf("unknown pattern word %q", name)
+		}
+	}
+	out := &P{template: s, rules: make(map[string]string)}
+	for i, part := range lit {
+		out.parts = append(out.parts, part)
+		if i < len(pat) {
+			out.parts = append(out.parts, pat[i])
+			out.rules[pat[i]] = p.rules[pat[i]]
+		}
+	}
+	return out, nil
+}
+
 // compileRegexp assembles and compiles a regexp that matches the complete
 // template string with the subexpressions for pattern words injected.
 func (p *P) compileRegexp() (*regexp.Regexp, error) {

@@ -32,7 +32,7 @@ func NewTransform(lhs, rhs string, binds Binds) (*T, error) {
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %v", lhs, err)
 	}
-	rp, err := derive(lp, rhs)
+	rp, err := lp.Derive(rhs)
 	if err != nil {
 		if _, ok := err.(parseError); ok {
 			return nil, fmt.Errorf("parsing %q: %v", rhs, err)
@@ -82,30 +82,6 @@ func (t *T) Search(needle string, f func(string) error) error {
 		}
 		return f(out)
 	})
-}
-
-// derive constructs a new compiled pattern, using the same pattern words as p
-// but with s as the template instead. It is an error if s refers to a pattern
-// word not known to p.
-func derive(p *P, s string) (*P, error) {
-	lit, pat, err := parse(s)
-	if err != nil {
-		return nil, err
-	}
-	for _, name := range pat {
-		if _, ok := p.rules[name]; !ok {
-			return nil, fmt.Errorf("unknown pattern word %q", name)
-		}
-	}
-	out := &P{template: s, rules: make(map[string]string)}
-	for i, part := range lit {
-		out.parts = append(out.parts, part)
-		if i < len(pat) {
-			out.parts = append(out.parts, pat[i])
-			out.rules[pat[i]] = p.rules[pat[i]]
-		}
-	}
-	return out, nil
 }
 
 // reversible reports whether two sets of bindings are mutually saturating,
