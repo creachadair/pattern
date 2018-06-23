@@ -15,7 +15,7 @@ import (
 //
 //    b, err := t.Reverse(a)  // gives err == nil
 //
-// succeeds with a == b.
+// succeeds with a == b, and vice versa with Forward and Reverse exchanged.
 type T struct {
 	lhs, rhs *P
 }

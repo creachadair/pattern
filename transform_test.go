@@ -75,23 +75,54 @@ func TestNewTransform(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			tut, err := NewTransform(test.lhs, test.rhs, test.binds)
-			if err != nil {
-				t.Fatalf("NewTransform(%q, %q, ...) failed: %v", test.lhs, test.rhs, err)
-			}
-			a, err := tut.Forward(test.input)
-			if err != nil {
-				t.Fatalf("Forward(%q) failed: %v", test.input, err)
-			}
-			t.Logf("Forward(%q) = %q", test.input, a)
-			b, err := tut.Reverse(a)
-			if err != nil {
-				t.Fatalf("Reverse(%q) failed: %v", a, err)
-			}
-			t.Logf("Reverse(%q) = %q", a, b)
-			if b != test.input {
-				t.Errorf("FR transform: got %q, want %q", b, test.input)
-			}
+			// Verify that forward | reverse is the identity transformation.
+			t.Run("FR", func(t *testing.T) {
+				tut, err := NewTransform(test.lhs, test.rhs, test.binds)
+				if err != nil {
+					t.Fatalf("NewTransform(%q, %q, ...) failed: %v", test.lhs, test.rhs, err)
+				}
+
+				a, err := tut.Forward(test.input)
+				if err != nil {
+					t.Fatalf("Forward(%q) failed: %v", test.input, err)
+				}
+				t.Logf("Forward(%q) = %q", test.input, a)
+
+				b, err := tut.Reverse(a)
+				if err != nil {
+					t.Fatalf("Reverse(%q) failed: %v", a, err)
+				}
+				t.Logf("Reverse(%q) = %q", a, b)
+
+				if b != test.input {
+					t.Errorf("FR transform: got %q, want %q", b, test.input)
+				}
+			})
+
+			// Verify that reverse | forward is the identity transformation.
+			// Note that the LHS and RHS are swapped here.
+			t.Run("RF", func(t *testing.T) {
+				tut, err := NewTransform(test.rhs, test.lhs, test.binds)
+				if err != nil {
+					t.Fatalf("NewTransform(%q, %q, ...) failed: %v", test.rhs, test.lhs, err)
+				}
+
+				b, err := tut.Reverse(test.input)
+				if err != nil {
+					t.Fatalf("Reverse(%q) failed: %v", test.input, err)
+				}
+				t.Logf("Reverse(%q) = %q", test.input, b)
+
+				a, err := tut.Forward(b)
+				if err != nil {
+					t.Fatalf("Forward(%q) failed: %v", b, err)
+				}
+				t.Logf("Forward(%q) = %q", b, a)
+
+				if a != test.input {
+					t.Errorf("RF transform: got %q, want %q", a, test.input)
+				}
+			})
 		})
 	}
 }
