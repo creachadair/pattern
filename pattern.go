@@ -49,11 +49,30 @@
 // interpolated in place of the anchors. Use the Apply method to apply bindings
 // to a template.
 //
+// Matching
+//
+// A pattern may be matched against a string using the Match method.  Match
+// succeeds if the string is a full regexp match for the expansion of the
+// template with the pattern word bindings. A successful match returns a list
+// of Binds that give the text of the submatches.
+//
+// To find multiple matches of the pattern in the string, use the Search
+// method. Search behaves like Match, but invokes a callback for each complete,
+// non-overlapping match in sequence.
+//
+// Substitution
+//
+// String values may be substituted into a pattern using the Apply and
+// ApplyFunc methods. Apply takes an ordered list of Bind values and
+// interpolates them into the template; ApplyFunc invokes a callback to
+// generate the strings to interpolate.
+//
 // Derivation
 //
-// It is also possible to "derive" a new pattern from an existing one using the
-// Derive method to introduce a new template string that refers to the same
-// pattern words, or a subset thereof.
+// The Derive method "derives" a new pattern from an existing one, by
+// introducing a new template string that refers to the same pattern words (or
+// a subset thereof). Unlike Parse, the Derive method does not introduce any
+// new bindings.
 package pattern
 
 import (
