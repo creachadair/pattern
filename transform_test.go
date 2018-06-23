@@ -1,7 +1,7 @@
 package pattern
 
 import (
-	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -160,17 +160,31 @@ func TestTransformSearch(t *testing.T) {
 	tut := MustTransform("(${n} ${op} ${n})", "${n} ${n} ${op}", Binds{
 		{"n", "\\d+"}, {"op", "[-+*/]"},
 	})
-	want := []string{"5 3 +", "2 4 *", "6 3 -", "9 1 /"}
-	var got []string
-	if err := tut.Search("(5 + 3)\n(2 * 4)59\t(6 - 3)\n(9 / 1)!", func(s string) error {
-		got = append(got, s)
-		t.Logf("Search #%d: found %q", len(got), s)
+	const A = "(5 + 3)\n(2 * 4)\n(6 - 3)\n(9 / 1)"
+	const B = "5 3 +\n2 4 *\n6 3 -\n9 1 /"
+
+	var fgot []string
+	if err := tut.Search(A, func(s string) error {
+		fgot = append(fgot, s)
 		return nil
 	}); err != nil {
-		t.Errorf("Search failed: %v", err)
+		t.Errorf("Search forward failed: %v", err)
 	}
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf("Search transform: got %+q, want %+q", got, want)
+	t.Logf("Search forward: found %+q", fgot)
+	if got := strings.Join(fgot, "\n"); got != B {
+		t.Errorf("Search forward: got %q, want %q", got, B)
+	}
+
+	var rgot []string
+	if err := tut.Reverse().Search(B, func(s string) error {
+		rgot = append(rgot, s)
+		return nil
+	}); err != nil {
+		t.Errorf("Search reverse failed: %v", err)
+	}
+	t.Logf("Search reverse: found %+q", rgot)
+	if got := strings.Join(rgot, "\n"); got != A {
+		t.Errorf("Search reverse: got %q, want %q", got, A)
 	}
 }
 
