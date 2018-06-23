@@ -1,6 +1,9 @@
 package pattern
 
-import "testing"
+import (
+	"reflect"
+	"testing"
+)
 
 func TestReversible(t *testing.T) {
 	tests := []struct {
@@ -39,7 +42,7 @@ func TestReversible(t *testing.T) {
 	}
 }
 
-func TestNewTransform(t *testing.T) {
+func TestTransformApply(t *testing.T) {
 	tests := []struct {
 		name     string
 		lhs, rhs string
@@ -150,6 +153,24 @@ func TestNewTransformErrors(t *testing.T) {
 	}
 	if tut, err := NewTransform("OK", bogus, nil); err == nil {
 		t.Errorf("NewTransform(OK, %q, _): got %+v, wanted error", bogus, tut)
+	}
+}
+
+func TestTransformSearch(t *testing.T) {
+	tut := MustTransform("(${n} ${op} ${n})", "${n} ${n} ${op}", Binds{
+		{"n", "\\d+"}, {"op", "[-+*/]"},
+	})
+	want := []string{"5 3 +", "2 4 *", "6 3 -", "9 1 /"}
+	var got []string
+	if err := tut.Search("(5 + 3)\n(2 * 4)59\t(6 - 3)\n(9 / 1)!", func(s string) error {
+		got = append(got, s)
+		t.Logf("Search #%d: found %q", len(got), s)
+		return nil
+	}); err != nil {
+		t.Errorf("Search failed: %v", err)
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("Search transform: got %+q, want %+q", got, want)
 	}
 }
 

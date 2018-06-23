@@ -69,6 +69,21 @@ func (t *T) Apply(needle string) (string, error) {
 	return t.rhs.Apply(ms)
 }
 
+// Search scans needle for all non-overlapping matches of the left pattern of
+// t. For each match, Search applies the the result to the right pattern of t
+// and calls f with the transformed string. If f reports an error, the search
+// ends.  If the error is ErrStopSearch, Search returns nil. Otherwise Search
+// returns the error from f.
+func (t *T) Search(needle string, f func(string) error) error {
+	return t.lhs.Search(needle, func(start, end int, binds Binds) error {
+		out, err := t.rhs.Apply(binds)
+		if err != nil {
+			return err
+		}
+		return f(out)
+	})
+}
+
 // reversible reports whether two sets of bindings are mutually saturating,
 // meaning that each contains at least as many values for each binding as the
 // other requires. This check does not reflect permutations of order within
