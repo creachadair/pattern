@@ -1,8 +1,8 @@
 // Package pattern implements template-based string matching and substitution.
 //
 // A *pattern.P represents a template string containing a number of pattern
-// words, which are named locations where substitution may occur. A pattern may
-// be "matched" against a string to produce a set of bindings of names to
+// words, named locations where substitution may occur. A pattern may be
+// "matched" against a string to produce a set of bindings of names to
 // substrings; or it may be "applied" to a set of bindings to produce a
 // transformed string.
 //
@@ -18,23 +18,17 @@
 // include a literal dollar sign, double it ($$); all other characters are
 // interpreted as written.
 //
-// Each pattern word is an anchor to a location in the template string.  By
-// binding a regular expression to the name of each pattern word, we can use
-// the pattern to "match" strings whose contents, at locations corresponding to
-// the anchors in the template string, match the corresponding regexp.  Use the
-// Match (or Search) methods to match (or search for) a pattern in a string.
-//
-// In addition, the pattern word anchors allow us to "apply" the template to a
-// set of name-value bindings, to obtain a new string with the specified values
-// interpolated in place of the anchors. Use the Apply method to apply bindings
-// to a template.
-//
 // Matching
 //
-// A pattern may be matched against a string using the Match method.  Match
-// succeeds if the string is a full regexp match for the expansion of the
-// template with the pattern word bindings. A successful match returns a list
-// of Binds that give the text of the submatches.
+// Each pattern word is an anchor to a location in the template string.
+// Binding a regular expression to the name of each pattern word allows the the
+// pattern to "match" strings whose contents, at the anchored locations in the
+// template string, match the corresponding regexp.
+//
+// To match a pattern against a string, use the Match method.  Match succeeds
+// if the string is a full regexp match for the expansion of the template with
+// the pattern word bindings. A successful match returns a list of Binds that
+// give the text of the submatches.
 //
 // To find multiple matches of the pattern in the string, use the Search
 // method. Search behaves like Match, but invokes a callback for each complete,
