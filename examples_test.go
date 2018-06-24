@@ -71,3 +71,27 @@ func ExampleP_Apply() {
 	//   Y int
 	// }
 }
+
+func ExampleP_ApplyFunc() {
+	p := pattern.MustParse(`type ${name} struct {
+  ${arg} string `+"`json:\"${arg},omitempty\"`"+`
+}`, nil)
+
+	s, err := p.ApplyFunc(func(name string, n int) (string, error) {
+		if name == "name" {
+			return "Argument", nil
+		} else if n == 1 {
+			return "X", nil
+		}
+		return "value", nil
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(s)
+	// Output:
+	// type Argument struct {
+	//   X string `json:"value,omitempty"`
+	// }
+}
