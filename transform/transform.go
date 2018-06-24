@@ -56,7 +56,9 @@ func (r R) Reverse() R { return R{t: &T{lhs: r.t.rhs, rhs: r.t.lhs}} }
 func (r R) Apply(needle string) (string, error) { return r.t.Apply(needle) }
 
 // Search performs the search transformation, as (*T).Search.
-func (r R) Search(needle string, f func(string) error) error { return r.t.Search(needle, f) }
+func (r R) Search(needle string, f func(int, int, string) error) error {
+	return r.t.Search(needle, f)
+}
 
 // ErrNotReversible is returned by NewReversible if its template arguments do
 // not produce a reversible transformation.
@@ -105,16 +107,17 @@ func (t *T) Apply(needle string) (string, error) {
 
 // Search scans needle for all non-overlapping matches of the left pattern of
 // t. For each match, Search applies the the result to the right pattern of t
-// and calls f with the transformed string. If f reports an error, the search
-// ends.  If the error is ErrStopSearch, Search returns nil. Otherwise Search
-// returns the error from f.
-func (t *T) Search(needle string, f func(string) error) error {
+// and calls f with the starting and ending offsets of the original match,
+// along with the transformed string. If f reports an error, the search ends.
+// If the error is ErrStopSearch, Search returns nil. Otherwise Search returns
+// the error from f.
+func (t *T) Search(needle string, f func(start, end int, match string) error) error {
 	return t.lhs.Search(needle, func(start, end int, binds pattern.Binds) error {
 		out, err := t.rhs.Apply(binds)
 		if err != nil {
 			return err
 		}
-		return f(out)
+		return f(start, end, out)
 	})
 }
 

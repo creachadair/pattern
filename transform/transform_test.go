@@ -166,7 +166,8 @@ func TestTransformSearch(t *testing.T) {
 	const B = "5 3 +\n2 4 *\n6 3 -\n9 1 /"
 
 	var fgot []string
-	if err := tut.Search(A, func(s string) error {
+	if err := tut.Search(A, func(i, j int, s string) error {
+		t.Logf("Forward Search rewrote [%d:%d] %q to %q", i, j, A[i:j], s)
 		fgot = append(fgot, s)
 		return nil
 	}); err != nil {
@@ -178,7 +179,8 @@ func TestTransformSearch(t *testing.T) {
 	}
 
 	var rgot []string
-	if err := tut.Reverse().Search(B, func(s string) error {
+	if err := tut.Reverse().Search(B, func(i, j int, s string) error {
+		t.Logf("Reverse Search rewrote [%d:%d] %q to %q", i, j, B[i:j], s)
 		rgot = append(rgot, s)
 		return nil
 	}); err != nil {
