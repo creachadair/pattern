@@ -300,10 +300,10 @@ func Parse(s string, binds []Bind) (*P, error) {
 	}
 	p := &P{template: s, parts: parts, rules: rules}
 	for _, bind := range binds {
-		if _, ok := p.rules[bind.Name]; !ok {
-			return nil, fmt.Errorf("unknown pattern word %q", bind.Name)
+		if _, ok := p.rules[bind.Name]; ok {
+			p.rules[bind.Name] = bind.Expr
 		}
-		p.rules[bind.Name] = bind.Expr
+		// ignore bindings that do not apply
 	}
 	return p, nil
 }
