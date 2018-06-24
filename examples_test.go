@@ -48,3 +48,26 @@ func Example() {
 	// Applied:
 	// Grade: A-
 }
+
+func ExampleP_Apply() {
+	p := pattern.MustParse(`type ${name} struct {
+  ${lhs} int
+  ${rhs} int
+}`, nil)
+
+	s, err := p.Apply(pattern.Binds{
+		{Name: "name", Expr: "binop"},
+		{Name: "lhs", Expr: "X"},
+		{Name: "rhs", Expr: "Y"},
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(s)
+	// Output:
+	// type binop struct {
+	//   X int
+	//   Y int
+	// }
+}
