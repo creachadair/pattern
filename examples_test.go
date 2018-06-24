@@ -95,3 +95,22 @@ func ExampleP_ApplyFunc() {
 	//   X string `json:"value,omitempty"`
 	// }
 }
+
+func ExampleP_Match() {
+	p := pattern.MustParse(`[${text}](${link})`, pattern.Binds{
+		{Name: "text", Expr: ".+"},
+		{Name: "link", Expr: "\\S+"},
+	})
+
+	m, err := p.Match(`[docs](http://godoc.org/net/url)`)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("link text: %s\n", m.First("text"))
+	fmt.Printf("URL: %s\n", m.First("link"))
+
+	// Output:
+	// link text: docs
+	// URL: http://godoc.org/net/url
+}
