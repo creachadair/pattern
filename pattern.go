@@ -220,8 +220,7 @@ func (p *P) compileRegexp() (*regexp.Regexp, error) {
 			if err != nil {
 				return nil, fmt.Errorf("invalid expression for %q: %v", part, err)
 			}
-			stripNames(s)
-			fmt.Fprintf(&expr, `(?P<%s>%s)`, part, s.String())
+			fmt.Fprintf(&expr, `(?P<%s>%s)`, part, stripCaptures(s).String())
 		}
 		r, err := regexp.Compile(expr.String())
 		if err != nil {
@@ -232,13 +231,16 @@ func (p *P) compileRegexp() (*regexp.Regexp, error) {
 	return p.re, nil
 }
 
-// stripNames removes capture group names from re and all its recursive
-// subexpressions.
-func stripNames(re *syntax.Regexp) {
-	re.Name = ""
-	for _, sub := range re.Sub {
-		stripNames(sub)
+// stripCaptures replaces capturing groups with non-capturing groups in re and
+// all its recursive subexpressions.
+func stripCaptures(re *syntax.Regexp) *syntax.Regexp {
+	if re.Op == syntax.OpCapture {
+		return stripCaptures(re.Sub[0])
 	}
+	for i, sub := range re.Sub {
+		re.Sub[i] = stripCaptures(sub)
+	}
+	return re
 }
 
 // A Bind associates a pattern word name with a matching expression.
