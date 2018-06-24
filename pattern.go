@@ -79,17 +79,6 @@ func (p *P) Binds() Binds {
 	return binds
 }
 
-// bind reports whether name is a pattern word of p, and if so binds its
-// matching expression to expr.
-func (p *P) bind(name, expr string) bool {
-	if _, ok := p.rules[name]; ok {
-		p.rules[name] = expr
-		p.re = nil // invalidate cache
-		return true
-	}
-	return false
-}
-
 // Match reports whether needle matches p, and if so returns a list of bindings
 // for the pattern words occurring in s.  Because the same pattern word may
 // occur multiple times in the pattern, the order of bindings is significant.
@@ -311,9 +300,10 @@ func Parse(s string, binds []Bind) (*P, error) {
 	}
 	p := &P{template: s, parts: parts, rules: rules}
 	for _, bind := range binds {
-		if !p.bind(bind.Name, bind.Expr) {
+		if _, ok := p.rules[bind.Name]; !ok {
 			return nil, fmt.Errorf("unknown pattern word %q", bind.Name)
 		}
+		p.rules[bind.Name] = bind.Expr
 	}
 	return p, nil
 }

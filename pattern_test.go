@@ -88,30 +88,6 @@ func TestParseErrors(t *testing.T) {
 	}
 }
 
-func TestBinding(t *testing.T) {
-	p := MustParse("name: ${name}\nvalue: ${value}\n", Binds{
-		{"name", "xyz"},
-		{"value", "pdq"},
-	})
-	tests := []struct {
-		name, expr string
-		ok         bool
-	}{
-		{"name", "\\w+", true},
-		{"value", "\\d+", true},
-		{"", "", false},
-		{"dead", "horse", false},
-	}
-	for _, test := range tests {
-		got := p.bind(test.name, test.expr)
-		if got != test.ok {
-			t.Errorf("p.bind(%q): got %v, want %v", test.name, got, test.ok)
-		} else if v := p.rules[test.name]; got && v != test.expr {
-			t.Errorf("p.bind(%q): got %q, want %q", test.name, v, test.expr)
-		}
-	}
-}
-
 func TestMatch(t *testing.T) {
 	tests := []struct {
 		pattern string
