@@ -158,7 +158,7 @@ func TestNewErrors(t *testing.T) {
 	}
 }
 
-func TestTransformSearch(t *testing.T) {
+func TestSearch(t *testing.T) {
 	tut := MustReversible("(${n} ${op} ${n})", "${n} ${n} ${op}", pattern.Binds{
 		{Name: "n", Expr: "\\d+"}, {Name: "op", Expr: "[-+*/]"},
 	})
@@ -189,6 +189,21 @@ func TestTransformSearch(t *testing.T) {
 	t.Logf("Search reverse: found %+q", rgot)
 	if got := strings.Join(rgot, "\n"); got != A {
 		t.Errorf("Search reverse: got %q, want %q", got, A)
+	}
+}
+
+func TestReplace(t *testing.T) {
+	tut := Must("`${text}`", "<tt>${text}</tt>", pattern.Binds{
+		{Name: "text", Expr: "([^`]*)"},
+	})
+	const input = "calling `f` or `g` with no argument returns `#f`"
+	const want = "calling <tt>f</tt> or <tt>g</tt> with no argument returns <tt>#f</tt>"
+
+	got, err := tut.Replace(input)
+	if err != nil {
+		t.Errorf("Replace %q failed: %v", input, err)
+	} else if got != want {
+		t.Errorf("Replace %q: got %q, want %q", input, got, want)
 	}
 }
 

@@ -5,6 +5,7 @@ package transform
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"bitbucket.org/creachadair/pattern"
 )
@@ -119,6 +120,22 @@ func (t *T) Search(needle string, f func(start, end int, match string) error) er
 		}
 		return f(start, end, out)
 	})
+}
+
+// Replace replaces all non-overlapping matches of the left pattern of t with
+// the results of applying the right pattern of t.
+func (t *T) Replace(needle string) (string, error) {
+	var out strings.Builder
+	cur := 0
+	if err := t.Search(needle, func(start, end int, match string) error {
+		out.WriteString(needle[cur:start])
+		out.WriteString(match)
+		cur = end
+		return nil
+	}); err != nil {
+		return "", err
+	}
+	return out.String(), nil
 }
 
 // reversible reports whether two sets of bindings are mutually saturating,
