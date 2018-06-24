@@ -114,3 +114,26 @@ func ExampleP_Match() {
 	// link text: docs
 	// URL: http://godoc.org/net/url
 }
+
+func ExampleP_Search() {
+	p := pattern.MustParse("${word}:", pattern.Binds{
+		{Name: "word", Expr: "\\w+"},
+	})
+
+	const text = `
+Do: a deer, a female deer, Re: a drop of golden sun.
+Mi: a name I call myself, Fa: a long long way to run.
+`
+	if err := p.Search(text, func(i, j int, m pattern.Binds) error {
+		fmt.Printf("At %d: %q\n", i, m.First("word"))
+		return nil
+	}); err != nil {
+		log.Fatal(err)
+	}
+
+	// Output:
+	// At 1: "Do"
+	// At 28: "Re"
+	// At 54: "Mi"
+	// At 80: "Fa"
+}
