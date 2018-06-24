@@ -66,8 +66,8 @@ func (r R) Search(needle string, f func(int, int, string) error) error {
 var ErrNotReversible = errors.New("transformation is not reversible")
 
 // A T represents a transformation between two templates, L and R.  Applying
-// the transformation matches L against the needle, and if it matches applies
-// the resulting bindings to R.
+// the transformation matches L against the needle, and if the match succeeds
+// applies the resulting bindings to R.
 type T struct {
 	lhs, rhs *pattern.P
 }
