@@ -23,26 +23,24 @@ import (
 // succeeds with a == b, and vice versa.
 type R struct{ t *T }
 
-// NewReversible constructs a new reversible transformation from the template
-// strings lhs and rhs, and the bindings shared by both templates.  If the
-// resulting transformation is not reversible, it returns ErrNotReversible.
-func NewReversible(lhs, rhs string, binds pattern.Binds) (R, error) {
-	t, err := New(lhs, rhs, binds)
+// Reversible converts t to a reversible transformation. If err != nil, it
+// returns err.  It returns ErrNotReversible if t is not reversible.
+func Reversible(t *T, err error) (R, error) {
 	if err != nil {
-		if _, ok := err.(*pattern.ParseError); !ok {
-			err = ErrNotReversible
+		if _, ok := err.(*pattern.ParseError); ok {
+			return R{}, err
 		}
-		return R{}, err
-	} else if !reversible(t.lhs.Binds(), t.rhs.Binds()) {
-		return R{}, ErrNotReversible
+	} else if reversible(t.lhs.Binds(), t.rhs.Binds()) {
+		return R{t: t}, nil
 	}
-	return R{t: t}, nil
+	return R{}, ErrNotReversible
 }
 
-// MustReversible is as NewReversible, but panics if an error is reported. This
-// function exists to support static initialization.
-func MustReversible(lhs, rhs string, binds pattern.Binds) R {
-	r, err := NewReversible(lhs, rhs, binds)
+// MustReversible converts t to a reversible transformation if err == nil. It
+// panics if err != nil or if t is not reversible.  This exists to support
+// static initialization.
+func MustReversible(t *T, err error) R {
+	r, err := Reversible(t, err)
 	if err != nil {
 		panic("transform: " + err.Error())
 	}
@@ -55,6 +53,9 @@ func (r R) Reverse() R { return R{t: &T{lhs: r.t.rhs, rhs: r.t.lhs}} }
 
 // Apply applies the transformation, as (*T).Apply.
 func (r R) Apply(needle string) (string, error) { return r.t.Apply(needle) }
+
+// Replace replaces all occurrences of the lhs of r, as (*T).Replace.
+func (r R) Replace(needle string) (string, error) { return r.t.Replace(needle) }
 
 // Search performs the search transformation, as (*T).Search.
 func (r R) Search(needle string, f func(int, int, string) error) error {
@@ -86,10 +87,9 @@ func New(lhs, rhs string, binds pattern.Binds) (*T, error) {
 	return &T{lhs: lp, rhs: rp}, nil
 }
 
-// Must is as New, but panics if an error is reported. This function exists to
+// Must returns t if err == nil, and panics otherwise.  This function exists to
 // support static initialization.
-func Must(lhs, rhs string, binds pattern.Binds) *T {
-	t, err := New(lhs, rhs, binds)
+func Must(t *T, err error) *T {
 	if err != nil {
 		panic("transform: " + err.Error())
 	}

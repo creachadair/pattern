@@ -12,11 +12,11 @@ func Example() {
 	const lhs = `git@${host}:${user}/${repo}.git`
 	const rhs = `http://${host}/${user}/${repo}`
 
-	t := transform.MustReversible(lhs, rhs, pattern.Binds{
+	t := transform.MustReversible(transform.New(lhs, rhs, pattern.Binds{
 		{Name: "host", Expr: `\w+(\.\w+)*`},
 		{Name: "user", Expr: `\w+`},
 		{Name: "repo", Expr: `\w+`},
-	})
+	}))
 
 	const input = `git@bitbucket.org:creachadair/stringset.git`
 	fmt.Println("input:", input)

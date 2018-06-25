@@ -82,7 +82,7 @@ func TestReversibleApply(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			// Verify that forward | reverse is the identity transformation.
 			t.Run("FR", func(t *testing.T) {
-				tut, err := NewReversible(test.lhs, test.rhs, test.binds)
+				tut, err := Reversible(New(test.lhs, test.rhs, test.binds))
 				if err != nil {
 					t.Fatalf("NewReversible(%q, %q, ...) failed: %v", test.lhs, test.rhs, err)
 				}
@@ -107,7 +107,7 @@ func TestReversibleApply(t *testing.T) {
 			// Verify that reverse | forward is the identity transformation.
 			// Note that the LHS and RHS are swapped here.
 			t.Run("RF", func(t *testing.T) {
-				tut, err := NewReversible(test.rhs, test.lhs, test.binds)
+				tut, err := Reversible(New(test.rhs, test.lhs, test.binds))
 				if err != nil {
 					t.Fatalf("NewReversible(%q, %q, ...) failed: %v", test.rhs, test.lhs, err)
 				}
@@ -143,25 +143,25 @@ func TestNewErrors(t *testing.T) {
 		{"${b} + ${x} + ${b}", "${x} + ${b} + ${x}"},
 	}
 	for _, test := range nonrev {
-		tut, err := NewReversible(test.lhs, test.rhs, nil)
+		tut, err := Reversible(New(test.lhs, test.rhs, nil))
 		if err != ErrNotReversible {
-			t.Errorf("NewReversible(%q, %q, _): got (%v, %v), want: %v",
+			t.Errorf("Reversible(New(%q, %q, _)): got (%v, %v), want: %v",
 				test.lhs, test.rhs, tut, err, ErrNotReversible)
 		}
 	}
 	const bogus = "${"
-	if tut, err := NewReversible(bogus, "OK", nil); err == nil {
-		t.Errorf("NewReversible(%q, OK, _): got %+v, wanted error", bogus, tut)
+	if tut, err := Reversible(New(bogus, "OK", nil)); err == nil {
+		t.Errorf("Reversible(New(%q, OK, _)): got %+v, wanted error", bogus, tut)
 	}
-	if tut, err := NewReversible("OK", bogus, nil); err == nil {
-		t.Errorf("New(OK, %q, _): got %+v, wanted error", bogus, tut)
+	if tut, err := Reversible(New("OK", bogus, nil)); err == nil {
+		t.Errorf("Reversible(New(OK, %q, _)): got %+v, wanted error", bogus, tut)
 	}
 }
 
 func TestSearch(t *testing.T) {
-	tut := MustReversible("(${n} ${op} ${n})", "${n} ${n} ${op}", pattern.Binds{
+	tut := MustReversible(New("(${n} ${op} ${n})", "${n} ${n} ${op}", pattern.Binds{
 		{Name: "n", Expr: "\\d+"}, {Name: "op", Expr: "[-+*/]"},
-	})
+	}))
 	const A = "(5 + 3)\n(2 * 4)\n(6 - 3)\n(9 / 1)"
 	const B = "5 3 +\n2 4 *\n6 3 -\n9 1 /"
 
@@ -193,9 +193,9 @@ func TestSearch(t *testing.T) {
 }
 
 func TestReplace(t *testing.T) {
-	tut := Must("`${text}`", "<tt>${text}</tt>", pattern.Binds{
+	tut := Must(New("`${text}`", "<tt>${text}</tt>", pattern.Binds{
 		{Name: "text", Expr: "([^`]*)"},
-	})
+	}))
 	const input = "calling `f` or `g` with no argument returns `#f`"
 	const want = "calling <tt>f</tt> or <tt>g</tt> with no argument returns <tt>#f</tt>"
 
