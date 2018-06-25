@@ -3,16 +3,11 @@
 package transform
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
 	"bitbucket.org/creachadair/pattern"
 )
-
-// ErrNotReversible is returned by NewReversible if its template arguments do
-// not produce a reversible transformation.
-var ErrNotReversible = errors.New("transformation is not reversible")
 
 // A T represents a transformation between two templates, L and R.  Applying
 // the transformation matches L against the needle, and if the match succeeds
