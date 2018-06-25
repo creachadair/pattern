@@ -21,9 +21,8 @@
 // Matching
 //
 // Each pattern word is an anchor to a location in the template string.
-// Binding a regular expression to the name of each pattern word allows the the
-// pattern to "match" strings whose contents, at the anchored locations in the
-// template string, match the corresponding regexp.
+// Binding regular expressions to the pattern words allows the the pattern to
+// match strings.
 //
 // To match a pattern against a string, use the Match method.  Match succeeds
 // if the string is a full regexp match for the expansion of the template with
