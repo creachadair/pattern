@@ -10,58 +10,6 @@ import (
 	"bitbucket.org/creachadair/pattern"
 )
 
-// An R represents a reversible transformation between two templates, L and R.
-// A reversible transformation has the property that its forward and reverse
-// applications are inverses of each other, meaning that if
-//
-//    a, err := r.Apply(x)  // and err == nil
-//
-// then
-//
-//    b, err := r.Reverse().Apply(a)
-//
-// succeeds with a == b, and vice versa.
-type R struct{ t *T }
-
-// Reversible converts t to a reversible transformation. If err != nil, it
-// returns err.  It returns ErrNotReversible if t is not reversible.
-func Reversible(t *T, err error) (R, error) {
-	if err != nil {
-		if _, ok := err.(*pattern.ParseError); ok {
-			return R{}, err
-		}
-	} else if reversible(t.lhs.Binds(), t.rhs.Binds()) {
-		return R{t: t}, nil
-	}
-	return R{}, ErrNotReversible
-}
-
-// MustReversible converts t to a reversible transformation if err == nil. It
-// panics if err != nil or if t is not reversible.  This exists to support
-// static initialization.
-func MustReversible(t *T, err error) R {
-	r, err := Reversible(t, err)
-	if err != nil {
-		panic("transform: " + err.Error())
-	}
-	return r
-}
-
-// Reverse returns the reverse transformation of R, with its left and right
-// templates in the opposite order.
-func (r R) Reverse() R { return R{t: &T{lhs: r.t.rhs, rhs: r.t.lhs}} }
-
-// Apply applies the transformation, as (*T).Apply.
-func (r R) Apply(needle string) (string, error) { return r.t.Apply(needle) }
-
-// Replace replaces all occurrences of the lhs of r, as (*T).Replace.
-func (r R) Replace(needle string) (string, error) { return r.t.Replace(needle) }
-
-// Search performs the search transformation, as (*T).Search.
-func (r R) Search(needle string, f func(int, int, string) error) error {
-	return r.t.Search(needle, f)
-}
-
 // ErrNotReversible is returned by NewReversible if its template arguments do
 // not produce a reversible transformation.
 var ErrNotReversible = errors.New("transformation is not reversible")
@@ -87,9 +35,10 @@ func New(lhs, rhs string, binds pattern.Binds) (*T, error) {
 	return &T{lhs: lp, rhs: rp}, nil
 }
 
-// Must returns t if err == nil, and panics otherwise.  This function exists to
-// support static initialization.
-func Must(t *T, err error) *T {
+// Must acts as New, but panics if an error is reported. This function exists
+// to support static initialization.
+func Must(lhs, rhs string, binds pattern.Binds) *T {
+	t, err := New(lhs, rhs, binds)
 	if err != nil {
 		panic("transform: " + err.Error())
 	}
@@ -138,10 +87,19 @@ func (t *T) Replace(needle string) (string, error) {
 	return out.String(), nil
 }
 
-// reversible reports whether two sets of bindings are mutually saturating,
+// Reverse returns the reverse of t, with its left and right templates
+// exchanged.
+func (t *T) Reverse() *T { return &T{lhs: t.rhs, rhs: t.lhs} }
+
+// Reversible reports whether the bindings of t are mutually saturating,
 // meaning that each contains at least as many values for each binding as the
-// other requires. This check does not reflect permutations of order within
-// bindings of the same name (since it doesn't examine values).
+// other requires. If this is false, it means applying the transformation
+// discards information.
+//
+// This check does not reflect permutations of order within bindings of the
+// same name (since it doesn't examine values).
+func (t *T) Reversible() bool { return reversible(t.lhs.Binds(), t.rhs.Binds()) }
+
 func reversible(a, b pattern.Binds) bool {
 	na := make(map[string]int)
 	for _, bind := range a {

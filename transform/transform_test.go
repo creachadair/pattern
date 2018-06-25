@@ -82,9 +82,9 @@ func TestReversibleApply(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			// Verify that forward | reverse is the identity transformation.
 			t.Run("FR", func(t *testing.T) {
-				tut, err := Reversible(New(test.lhs, test.rhs, test.binds))
+				tut, err := New(test.lhs, test.rhs, test.binds)
 				if err != nil {
-					t.Fatalf("NewReversible(%q, %q, ...) failed: %v", test.lhs, test.rhs, err)
+					t.Fatalf("New(%q, %q, ...) failed: %v", test.lhs, test.rhs, err)
 				}
 
 				a, err := tut.Apply(test.input)
@@ -95,9 +95,9 @@ func TestReversibleApply(t *testing.T) {
 
 				b, err := tut.Reverse().Apply(a)
 				if err != nil {
-					t.Fatalf("Reverse(%q) failed: %v", a, err)
+					t.Fatalf("Reverse().Apply(%q) failed: %v", a, err)
 				}
-				t.Logf("Reverse(%q) = %q", a, b)
+				t.Logf("Reverse().Apply(%q) = %q", a, b)
 
 				if b != test.input {
 					t.Errorf("FR transform: got %q, want %q", b, test.input)
@@ -107,22 +107,22 @@ func TestReversibleApply(t *testing.T) {
 			// Verify that reverse | forward is the identity transformation.
 			// Note that the LHS and RHS are swapped here.
 			t.Run("RF", func(t *testing.T) {
-				tut, err := Reversible(New(test.rhs, test.lhs, test.binds))
+				tut, err := New(test.rhs, test.lhs, test.binds)
 				if err != nil {
-					t.Fatalf("NewReversible(%q, %q, ...) failed: %v", test.rhs, test.lhs, err)
+					t.Fatalf("New(%q, %q, ...) failed: %v", test.rhs, test.lhs, err)
 				}
 
 				b, err := tut.Reverse().Apply(test.input)
 				if err != nil {
-					t.Fatalf("Reverse(%q) failed: %v", test.input, err)
+					t.Fatalf("Reverse().Apply(%q) failed: %v", test.input, err)
 				}
-				t.Logf("Reverse(%q) = %q", test.input, b)
+				t.Logf("Reverse().Apply(%q) = %q", test.input, b)
 
 				a, err := tut.Apply(b)
 				if err != nil {
-					t.Fatalf("Forward(%q) failed: %v", b, err)
+					t.Fatalf("Forward.Apply(%q) failed: %v", b, err)
 				}
-				t.Logf("Forward(%q) = %q", b, a)
+				t.Logf("Forward.Apply(%q) = %q", b, a)
 
 				if a != test.input {
 					t.Errorf("RF transform: got %q, want %q", a, test.input)
@@ -143,25 +143,29 @@ func TestNewErrors(t *testing.T) {
 		{"${b} + ${x} + ${b}", "${x} + ${b} + ${x}"},
 	}
 	for _, test := range nonrev {
-		tut, err := Reversible(New(test.lhs, test.rhs, nil))
-		if err != ErrNotReversible {
-			t.Errorf("Reversible(New(%q, %q, _)): got (%v, %v), want: %v",
-				test.lhs, test.rhs, tut, err, ErrNotReversible)
+		t.Logf("New(%q, %q, _):", test.lhs, test.rhs)
+		tut, err := New(test.lhs, test.rhs, nil)
+		if err != nil {
+			t.Logf("- Correctly failed: %v", err)
+		} else if tut.Reversible() {
+			t.Error("- Should not be reversible, but is")
+		} else {
+			t.Log("- Correctly non-reversible")
 		}
 	}
 	const bogus = "${"
-	if tut, err := Reversible(New(bogus, "OK", nil)); err == nil {
-		t.Errorf("Reversible(New(%q, OK, _)): got %+v, wanted error", bogus, tut)
+	if tut, err := New(bogus, "OK", nil); err == nil {
+		t.Errorf("New(%q, OK, _): got %+v, wanted error", bogus, tut)
 	}
-	if tut, err := Reversible(New("OK", bogus, nil)); err == nil {
-		t.Errorf("Reversible(New(OK, %q, _)): got %+v, wanted error", bogus, tut)
+	if tut, err := New("OK", bogus, nil); err == nil {
+		t.Errorf("New(OK, %q, _): got %+v, wanted error", bogus, tut)
 	}
 }
 
 func TestSearch(t *testing.T) {
-	tut := MustReversible(New("(${n} ${op} ${n})", "${n} ${n} ${op}", pattern.Binds{
+	tut := Must("(${n} ${op} ${n})", "${n} ${n} ${op}", pattern.Binds{
 		{Name: "n", Expr: "\\d+"}, {Name: "op", Expr: "[-+*/]"},
-	}))
+	})
 	const A = "(5 + 3)\n(2 * 4)\n(6 - 3)\n(9 / 1)"
 	const B = "5 3 +\n2 4 *\n6 3 -\n9 1 /"
 
@@ -193,9 +197,9 @@ func TestSearch(t *testing.T) {
 }
 
 func TestReplace(t *testing.T) {
-	tut := Must(New("`${text}`", "<tt>${text}</tt>", pattern.Binds{
+	tut := Must("`${text}`", "<tt>${text}</tt>", pattern.Binds{
 		{Name: "text", Expr: "([^`]*)"},
-	}))
+	})
 	const input = "calling `f` or `g` with no argument returns `#f`"
 	const want = "calling <tt>f</tt> or <tt>g</tt> with no argument returns <tt>#f</tt>"
 
