@@ -304,7 +304,7 @@ func Parse(s string, binds []Bind) (*P, error) {
 }
 
 // Bind returns a copy of p with the specified bindings updated.  Existing
-// bindings of p not mentioned in binds are left alone.
+// bindings of p not mentioned in binds are copied intact from p to the result.
 func (p *P) Bind(binds Binds) *P {
 	return &P{
 		template: p.template,
