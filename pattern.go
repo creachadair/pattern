@@ -299,14 +299,18 @@ func Parse(s string, binds []Bind) (*P, error) {
 			rules[pat[i]] = ""
 		}
 	}
-	p := &P{template: s, parts: parts, rules: rules}
-	for _, bind := range binds {
-		if _, ok := p.rules[bind.Name]; ok {
-			p.rules[bind.Name] = bind.Expr
-		}
-		// ignore bindings that do not apply
-	}
+	p := &P{template: s, parts: parts, rules: mergeBinds(rules, binds)}
 	return p, nil
+}
+
+// Bind returns a copy of p with the specified bindings updated.  Existing
+// bindings of p not mentioned in binds are left alone.
+func (p *P) Bind(binds Binds) *P {
+	return &P{
+		template: p.template,
+		parts:    p.parts,
+		rules:    mergeBinds(p.rules, binds),
+	}
 }
 
 // MustParse parses s into a pattern template, as Parse, but panics if parsing
@@ -405,6 +409,23 @@ func bindMatches(re *regexp.Regexp, m []int, needle string) Binds {
 		})
 	}
 	return binds
+}
+
+// mergeBinds returns a copy of old into which the given binds are merged.  The
+// result has the same keys as old, and the values for keys not mentioned in
+// binds are copied from old.
+func mergeBinds(old map[string]string, binds Binds) map[string]string {
+	rules := make(map[string]string)
+	for key, val := range old {
+		rules[key] = val
+	}
+	for _, bind := range binds {
+		if _, ok := rules[bind.Name]; ok {
+			rules[bind.Name] = bind.Expr
+		}
+		// ignore bindings that do not apply
+	}
+	return rules
 }
 
 // ParseError is the concrete type of parsing errors.

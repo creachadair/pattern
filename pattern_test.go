@@ -88,6 +88,37 @@ func TestParseErrors(t *testing.T) {
 	}
 }
 
+func TestBind(t *testing.T) {
+	p := MustParse(`${a}${b}${c}`, nil)
+	original := p.Binds()
+	tests := []struct {
+		desc        string
+		input, want Binds
+	}{
+		{"empty binding set", nil, original},
+
+		{"partial replacement 1", Binds{{"a", "12345"}},
+			Binds{{"a", "12345"}, {"b", ""}, {"c", ""}}},
+
+		{"partial replacement 2", Binds{{"c", "67890"}},
+			Binds{{"a", ""}, {"b", ""}, {"c", "67890"}}},
+
+		{"extra values are ignored", Binds{{"a", "ok"}, {"d", "nothing"}},
+			Binds{{"a", "ok"}, {"b", ""}, {"c", ""}}},
+
+		{"complete replacement",
+			Binds{{"w", "xyz"}, {"a", "pdq"}, {"b", "fruit"}, {"z", "oot"}, {"c", "ough"}},
+			Binds{{"a", "pdq"}, {"b", "fruit"}, {"c", "ough"}}},
+	}
+	for _, test := range tests {
+		t.Logf("Testing %s with %+v", test.desc, test.input)
+		q := p.Bind(test.input)
+		if got := q.Binds(); !reflect.DeepEqual(got, test.want) {
+			t.Errorf("Wrong bindings:\ngot:  %+v\nwant: %+v", got, test.want)
+		}
+	}
+}
+
 func TestMatch(t *testing.T) {
 	tests := []struct {
 		pattern string
