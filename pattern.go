@@ -125,8 +125,9 @@ var ErrStopSearch = errors.New("stopped searching")
 var ErrNoMatch = errors.New("string does not match pattern")
 
 // Apply applies a list of bindings to the pattern template to produce a new
-// string. It is an error if the bindings do not exhaust the pattern words in
-// the template.
+// string. It is an error if the bindings do not cover the pattern words in the
+// template, meaning binds has at least one binding for each pattern word
+// mentioned by the template.
 //
 // If a pattern word appears in the template more often than in binds, the
 // value of the last matching binding is repeated to fill the remaining spots.
