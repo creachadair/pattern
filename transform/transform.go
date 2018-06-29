@@ -9,8 +9,8 @@ import (
 	"bitbucket.org/creachadair/pattern"
 )
 
-// A T represents a transformation between two templates, L and R.  Applying
-// the transformation matches L against the needle, and if the match succeeds
+// A T represents a transformation between two patterns, L and R.  Applying the
+// transformation matches L against the needle, and if the match succeeds it
 // applies the resulting bindings to R.
 type T struct {
 	lhs, rhs *pattern.P
