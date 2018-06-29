@@ -1,5 +1,5 @@
-// Package transform implements pattern transformations between pairs of string
-// templates, as defined by the bitbucket.org/creachadair/pattern package.
+// Package transform implements transformations between pairs of string
+// patterns, as defined by the bitbucket.org/creachadair/pattern package.
 package transform
 
 import (
