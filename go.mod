@@ -1,3 +1,3 @@
-module bitbucket.org/creachadair/pattern
+module github.com/creachadair/pattern
 
 go 1.12

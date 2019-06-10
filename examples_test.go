@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"bitbucket.org/creachadair/pattern"
+	"github.com/creachadair/pattern"
 )
 
 func ExampleParse() {

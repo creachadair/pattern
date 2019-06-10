@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 
-	"bitbucket.org/creachadair/pattern"
-	"bitbucket.org/creachadair/pattern/transform"
+	"github.com/creachadair/pattern"
+	"github.com/creachadair/pattern/transform"
 )
 
 func Example() {

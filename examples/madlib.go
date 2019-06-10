@@ -1,5 +1,5 @@
 // Program madlib is a lighthearted demonstration program for how to use the
-// bitbucket.org/creachadair/pattern package.
+// github.com/creachadair/pattern package.
 //
 // Usage:
 //    madlib <input>
@@ -23,7 +23,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"bitbucket.org/creachadair/pattern"
+	"github.com/creachadair/pattern"
 )
 
 var in = bufio.NewScanner(os.Stdin)

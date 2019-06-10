@@ -1,12 +1,12 @@
 // Package transform implements transformations between pairs of string
-// patterns, as defined by the bitbucket.org/creachadair/pattern package.
+// patterns, as defined by the github.com/creachadair/pattern package.
 package transform
 
 import (
 	"fmt"
 	"strings"
 
-	"bitbucket.org/creachadair/pattern"
+	"github.com/creachadair/pattern"
 )
 
 // A T represents a transformation between two patterns, L and R.  Applying the

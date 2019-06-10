@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"bitbucket.org/creachadair/pattern"
+	"github.com/creachadair/pattern"
 )
 
 func TestReversible(t *testing.T) {
