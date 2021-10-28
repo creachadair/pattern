@@ -17,7 +17,6 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -35,7 +34,7 @@ func main() {
 	}
 
 	// Read and parse the input template.
-	lib, err := ioutil.ReadFile(flag.Arg(0))
+	lib, err := os.ReadFile(flag.Arg(0))
 	if err != nil {
 		log.Fatalf("Reading lib: %v", err)
 	}
