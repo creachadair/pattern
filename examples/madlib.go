@@ -2,7 +2,8 @@
 // github.com/creachadair/pattern package.
 //
 // Usage:
-//    madlib <input>
+//
+//	madlib <input>
 //
 // The input file is a text template with ${pattern} words imbedded.  After
 // reading the file, the program prompts the user to fill in values for each of

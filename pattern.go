@@ -6,19 +6,19 @@
 // substrings; or it may be "applied" to a set of bindings to produce a
 // transformed string.
 //
-// Template Grammar
+// # Template Grammar
 //
 // A template is a string that contains zero or more pattern words. A pattern
 // word has the general format
 //
-//     ${name}
+//	${name}
 //
 // That is, a single word (allowing letters, digits, "/", ":", "_", "-", "+",
 // "=", and "#") enclosed in curly brackets, prefixed by a dollar sign ($). To
 // include a literal dollar sign, double it ($$); all other characters are
 // interpreted as written.
 //
-// Matching
+// # Matching
 //
 // Each pattern word is an anchor to a location in the template string.
 // Binding regular expressions to the pattern words allows the the pattern to
@@ -33,7 +33,7 @@
 // method. Search behaves like Match, but invokes a callback for each complete,
 // non-overlapping match in sequence.
 //
-// Substitution
+// # Substitution
 //
 // String values may be substituted into a pattern using the Apply and
 // ApplyFunc methods. Apply takes an ordered list of Bind values and
