@@ -45,6 +45,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"maps"
 	"regexp"
 	"regexp/syntax"
 	"strings"
@@ -417,9 +418,7 @@ func bindMatches(re *regexp.Regexp, m []int, needle string) Binds {
 // binds are copied from old.
 func mergeBinds(old map[string]string, binds Binds) map[string]string {
 	rules := make(map[string]string)
-	for key, val := range old {
-		rules[key] = val
-	}
+	maps.Copy(rules, old)
 	for _, bind := range binds {
 		if _, ok := rules[bind.Name]; ok {
 			rules[bind.Name] = bind.Expr
