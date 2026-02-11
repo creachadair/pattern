@@ -436,6 +436,6 @@ type ParseError struct {
 
 func (p *ParseError) Error() string { return fmt.Sprintf("at %d: %s", p.Pos, p.Message) }
 
-func perrorf(pos int, msg string, args ...interface{}) *ParseError {
+func perrorf(pos int, msg string, args ...any) *ParseError {
 	return &ParseError{pos, fmt.Sprintf(msg, args...)}
 }
