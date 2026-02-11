@@ -320,7 +320,7 @@ func TestApplyFunc(t *testing.T) {
 	// Apply a custom value filter.
 	val := map[string]string{"a": "alpha", "b": "bravo", "c": "charlie"}
 	got, err := p.ApplyFunc(func(name string, i int) (string, error) {
-		if trim := strings.TrimPrefix(name, "_"); trim != name {
+		if trim, ok := strings.CutPrefix(name, "_"); ok {
 			return val[trim], nil
 		}
 		// Verify that the index reflects the correct ordering.
